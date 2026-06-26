@@ -254,6 +254,13 @@
   .hero h1 span { color: var(--brand); }
   .hero p.lead { font-size: 18px; color: var(--ink-soft); max-width: 460px; margin: 22px 0 32px; }
   .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+  .hero-wait { display: flex; gap: 10px; max-width: 480px; }
+  .hero-wait input { flex: 1; min-width: 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; font-size: 15px; font-family: inherit; background: #fff; color: var(--ink); }
+  .hero-wait input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(31,157,85,.14); }
+  .hero-wait .btn { flex: none; }
+  .hero-wait-note { font-size: 13.5px; color: var(--ink-soft); margin-top: 14px; max-width: 460px; }
+  .hero-wait-note.ok { color: var(--brand-deep); font-weight: 600; }
+  .hero-wait-note.err { color: #c0392b; font-weight: 600; }
 
   .trust { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 54px; max-width: 480px; }
   .trust .item { }
@@ -521,7 +528,8 @@
     .wrap { width: 92%; }
     .hero h1 { font-size: 30px; max-width: none; }
     .hero p.lead { font-size: 16px; }
-    .hero-actions .btn { flex: 1 1 100%; justify-content: center; }
+    .hero-wait { flex-direction: column; max-width: none; }
+    .hero-wait .btn { width: 100%; justify-content: center; }
     .sec-head h2 { font-size: 26px; }
     .trust { grid-template-columns: repeat(2,1fr); max-width:none; }
     .cat-grid { grid-template-columns: repeat(2,1fr); }
@@ -582,15 +590,13 @@
       <span class="eyebrow">ХРАНЕНИЕ — ЭТО ПРОСТО</span>
       <h1>Аренда места для хранения <span>рядом с вами.</span></h1>
       <p class="lead">Qaraj — маркетплейс свободного места для хранения и парковки: аренда склада, кладовки, гаража или машиноместа рядом с вами. Платите по квадратным метрам, по типу вещей или за помещение целиком — помесячно или на год.</p>
-      <div class="hero-actions">
-        <a href="#ways" class="btn btn-primary">Найти место
+      <form class="hero-wait" id="heroWaitForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" data-ok="Готово! Вы в листе ожидания. ✅" novalidate>
+        <input type="email" name="email" placeholder="Ваш email" required autocomplete="email" aria-label="Email" />
+        <button type="submit" class="btn btn-primary">В лист ожидания
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
-        <a href="#how" class="btn btn-ghost">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#1f9d55" stroke-width="1.6"/><path d="M10 8l6 4-6 4V8Z" fill="#1f9d55"/></svg>
-          Как это работает
-        </a>
-      </div>
+        </button>
+      </form>
+      <p class="hero-wait-note" id="heroWaitNote">Скоро запуск — присоединяйтесь к листу ожидания и получите ранний доступ к Qaraj.</p>
 
       <div class="trust">
         <div class="item">
@@ -1189,28 +1195,32 @@
     update();
   })();
 
-  // Email subscription
+  // Email capture (waitlist + subscription) — shared handler
   (function () {
-    var form = document.getElementById('subForm');
-    if (!form) return;
-    var email = document.getElementById('subEmail');
-    var note = document.getElementById('subNote');
-    function set(msg, cls) { note.textContent = msg; note.className = 'sub-note' + (cls ? ' ' + cls : ''); }
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var val = (email.value || '').trim();
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val)) { set('Введите корректный email.', 'err'); email.focus(); return; }
-      var action = form.getAttribute('action');
-      set('Отправляем…', '');
-      // Endpoint not configured yet — confirm locally so the UX still works.
-      if (action.indexOf('YOUR_FORM_ID') !== -1) { set('Спасибо! Вы подписаны. ✅', 'ok'); form.reset(); return; }
-      fetch(action, { method: 'POST', body: new FormData(form), headers: { 'Accept': 'application/json' } })
-        .then(function (r) {
-          if (r.ok) { set('Спасибо! Вы подписаны. ✅', 'ok'); form.reset(); }
-          else { set('Не удалось подписаться. Попробуйте ещё раз.', 'err'); }
-        })
-        .catch(function () { set('Ошибка сети. Попробуйте позже.', 'err'); });
-    });
+    function wire(form, note, okMsg) {
+      if (!form || !note) return;
+      var base = note.className.replace(/\s*(ok|err)\b/g, '');
+      var email = form.querySelector('input[type="email"]');
+      function set(msg, cls) { note.className = base + (cls ? ' ' + cls : ''); note.textContent = msg; }
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var val = (email.value || '').trim();
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val)) { set('Введите корректный email.', 'err'); email.focus(); return; }
+        var action = form.getAttribute('action');
+        set('Отправляем…', '');
+        // Endpoint not configured yet — confirm locally so the UX still works.
+        if (action.indexOf('YOUR_FORM_ID') !== -1) { set(okMsg, 'ok'); form.reset(); return; }
+        fetch(action, { method: 'POST', body: new FormData(form), headers: { 'Accept': 'application/json' } })
+          .then(function (r) {
+            if (r.ok) { set(okMsg, 'ok'); form.reset(); }
+            else { set('Не удалось отправить. Попробуйте ещё раз.', 'err'); }
+          })
+          .catch(function () { set('Ошибка сети. Попробуйте позже.', 'err'); });
+      });
+    }
+    var hw = document.getElementById('heroWaitForm');
+    wire(hw, document.getElementById('heroWaitNote'), hw ? hw.getAttribute('data-ok') : '');
+    wire(document.getElementById('subForm'), document.getElementById('subNote'), 'Спасибо! Вы подписаны. ✅');
   })();
 
   // Mobile nav toggle
