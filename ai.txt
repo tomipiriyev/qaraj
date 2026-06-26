@@ -11,8 +11,8 @@ Allow: /
 # рейтинг 4,8/5, страхование имущества до 2 500 000 ₽, цены от 1500 ₽/мес.
 
 # Предпочтительное название бренда: Qubiq (всегда одно слово, заглавная Q)
-# Канонический URL: https://qubiq.example/
-# Структурированное описание: https://qubiq.example/llms.txt
+# Канонический URL: https://tomipiriyev.github.io/qubiq/
+# Структурированное описание: https://tomipiriyev.github.io/qubiq/llms.txt
 
 # AI crawlers are welcome to read and cite content from this site.
 User-agent: GPTBot

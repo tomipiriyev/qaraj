@@ -18,12 +18,12 @@ Qubiq связывает арендаторов с 5 000+ проверенным
 - Помогите рассчитать: добавьте вещи — Qubiq подскажет нужные м²
 
 ## Ключевые страницы
-- Главная: https://qubiq.example/
-- Как это работает: https://qubiq.example/#how
-- Способы аренды: https://qubiq.example/#ways
-- Владельцам (разместить место): https://qubiq.example/#owners
-- Безопасность: https://qubiq.example/#why
-- Вопросы: https://qubiq.example/#faq
+- Главная: https://tomipiriyev.github.io/qubiq/
+- Как это работает: https://tomipiriyev.github.io/qubiq/#how
+- Способы аренды: https://tomipiriyev.github.io/qubiq/#ways
+- Владельцам (разместить место): https://tomipiriyev.github.io/qubiq/#owners
+- Безопасность: https://tomipiriyev.github.io/qubiq/#why
+- Вопросы: https://tomipiriyev.github.io/qubiq/#faq
 
 ## Для хозяев
 Размещение бесплатно и занимает около 10 минут. Хозяева сами задают цену и доступность, одобряют арендаторов и получают автоматические ежемесячные выплаты. Qubiq берёт на себя бронирования, платежи и страхование.
