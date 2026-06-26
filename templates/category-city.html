@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<!--
+  ШАБЛОН: страница «категория + город» (программный SEO).
+  Замените токены при генерации страницы:
+    {{КАТЕГОРИЯ_РОД}}   — категория в родительном падеже, напр. «машиноместа», «склада», «кладовки»
+    {{КАТЕГОРИЯ_ИМ}}    — категория в им. падеже мн.ч. для текста, напр. «машиноместа», «склады»
+    {{ГОРОД_ПРЕД}}      — город в предложном падеже, напр. «Москве», «Санкт-Петербурге»
+    {{ГОРОД_ИМ}}        — город в им. падеже, напр. «Москва»
+    {{ГОРОД_SLUG}}      — латиницей для URL, напр. «moskva»
+    {{КАТ_SLUG}}        — латиницей для URL, напр. «arenda-mashinomesta»
+    {{ЦЕНА_ОТ}}         — минимальная цена, напр. «1500»
+    {{КОЛИЧЕСТВО}}      — число предложений, напр. «142»
+  Пример заполнения показан в комментариях рядом с тегами.
+-->
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Аренда {{КАТЕГОРИЯ_РОД}} в {{ГОРОД_ПРЕД}} — от {{ЦЕНА_ОТ}} ₽/мес | Qubiq</title>
+<meta name="description" content="{{КОЛИЧЕСТВО}} предложений парковки и {{КАТЕГОРИЯ_РОД}} в {{ГОРОД_ПРЕД}}. Сравните цены, читайте отзывы, бронируйте онлайн без комиссии за отмену." />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<meta name="theme-color" content="#1f9d55" />
+<link rel="canonical" href="https://qubiq.example/{{КАТ_SLUG}}/{{ГОРОД_SLUG}}" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Qubiq" />
+<meta property="og:title" content="Аренда {{КАТЕГОРИЯ_РОД}} в {{ГОРОД_ПРЕД}} — от {{ЦЕНА_ОТ}} ₽/мес | Qubiq" />
+<meta property="og:description" content="{{КОЛИЧЕСТВО}} предложений в {{ГОРОД_ПРЕД}}. Сравните цены, читайте отзывы, бронируйте онлайн без комиссии за отмену." />
+<meta property="og:url" content="https://qubiq.example/{{КАТ_SLUG}}/{{ГОРОД_SLUG}}" />
+<meta property="og:locale" content="ru_RU" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://qubiq.example/" },
+    { "@type": "ListItem", "position": 2, "name": "Аренда {{КАТЕГОРИЯ_РОД}}", "item": "https://qubiq.example/{{КАТ_SLUG}}" },
+    { "@type": "ListItem", "position": 3, "name": "{{ГОРОД_ИМ}}", "item": "https://qubiq.example/{{КАТ_SLUG}}/{{ГОРОД_SLUG}}" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Сколько стоит аренда {{КАТЕГОРИЯ_РОД}} в {{ГОРОД_ПРЕД}}?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Аренда {{КАТЕГОРИЯ_РОД}} в {{ГОРОД_ПРЕД}} начинается от {{ЦЕНА_ОТ}} ₽/мес. Цены устанавливают местные хозяева, вы платите только за используемые квадратные метры, без скрытых комиссий." }
+    },
+    {
+      "@type": "Question",
+      "name": "Сколько предложений доступно в {{ГОРОД_ПРЕД}}?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Сейчас в {{ГОРОД_ПРЕД}} доступно {{КОЛИЧЕСТВО}} проверенных предложений. Все хозяева проходят верификацию по паспорту/ИНН, каждое бронирование застраховано до 2 500 000 ₽." }
+    }
+  ]
+}
+</script>
+
+<style>
+  :root{--brand:#1f9d55;--brand-2:#34b56a;--brand-deep:#0f5132;--ink:#0f1722;--ink-soft:#475569;--line:#e4ebe6;--bg-soft:#f4f8f5;--bg-tint:#e7f4ec;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:"Inter",system-ui,sans-serif;color:var(--ink);line-height:1.55;}
+  .wrap{width:min(1280px,94%);margin:0 auto;}
+  a{color:inherit;text-decoration:none;}
+  header{border-bottom:1px solid var(--line);}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:66px;}
+  .brand{font-family:"Sora","Inter",sans-serif;font-weight:800;font-size:22px;}
+  .brand b{color:var(--brand);}
+  .crumbs{font-size:13px;color:var(--ink-soft);padding:18px 0;}
+  .crumbs a:hover{color:var(--brand);}
+  .hero{background:var(--bg-soft);padding:40px 0 48px;}
+  h1{font-family:"Sora","Inter",sans-serif;font-size:clamp(28px,4vw,40px);letter-spacing:-.02em;margin-bottom:14px;}
+  .hero p{color:var(--ink-soft);font-size:17px;max-width:760px;}
+  .meta-row{display:flex;gap:22px;margin-top:20px;flex-wrap:wrap;font-size:14px;}
+  .meta-row b{color:var(--brand-deep);}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:48px 0;}
+  .card{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff;}
+  .card .ph{height:160px;background:var(--bg-tint) center/cover;}
+  .card .b{padding:16px 18px;}
+  .card h3{font-family:"Sora";font-size:17px;margin-bottom:6px;}
+  .card small{color:var(--ink-soft);font-size:13px;}
+  .card .price{display:block;margin-top:10px;color:var(--brand);font-weight:700;}
+  .intro{padding:0 0 48px;max-width:820px;color:var(--ink-soft);font-size:16px;}
+  .intro h2{font-family:"Sora";color:var(--ink);font-size:24px;margin:0 0 14px;}
+  footer{background:var(--ink);color:#94a0b8;padding:30px 0;font-size:13px;}
+  @media(max-width:860px){.grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <a href="/" class="brand">Qub<b>iq</b></a>
+    <a href="/#ways" style="color:var(--brand);font-weight:600;">Все категории →</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="crumbs">
+    <a href="/">Главная</a> · <a href="/{{КАТ_SLUG}}">Аренда {{КАТЕГОРИЯ_РОД}}</a> · <span>{{ГОРОД_ИМ}}</span>
+  </nav>
+</div>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>Аренда {{КАТЕГОРИЯ_РОД}} в {{ГОРОД_ПРЕД}} — от {{ЦЕНА_ОТ}} ₽/мес</h1>
+    <p>{{КОЛИЧЕСТВО}} предложений {{КАТЕГОРИЯ_ИМ}} в {{ГОРОД_ПРЕД}}. Сравните цены, читайте отзывы и бронируйте онлайн без комиссии за отмену. Проверенные хозяева, страхование вещей до 2 500 000 ₽, эскроу-оплата.</p>
+    <div class="meta-row">
+      <span><b>{{КОЛИЧЕСТВО}}</b> предложений</span>
+      <span>от <b>{{ЦЕНА_ОТ}} ₽/мес</b></span>
+      <span><b>4,8</b> ★ средний рейтинг</span>
+      <span>Отмена в любой месяц</span>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <!-- Карточки объявлений генерируются из данных по городу {{ГОРОД_ИМ}} -->
+  <div class="grid">
+    <article class="card"><div class="ph" style="background-image:url('/images/photo_2026-06-26%2015.33.02.jpeg')"></div><div class="b"><h3>{{КАТЕГОРИЯ_ИМ}} рядом с центром</h3><small>{{ГОРОД_ИМ}} · 1,2 км · 5 м² · ★ 4,8</small><span class="price">от {{ЦЕНА_ОТ}} ₽/мес</span></div></article>
+    <article class="card"><div class="ph" style="background-image:url('/images/photo_2026-06-23%2022.11.58.jpeg')"></div><div class="b"><h3>Охраняемое {{КАТЕГОРИЯ_РОД}}</h3><small>{{ГОРОД_ИМ}} · 2,1 км · ★ 4,9</small><span class="price">от {{ЦЕНА_ОТ}} ₽/мес</span></div></article>
+    <article class="card"><div class="ph" style="background-image:url('/images/photo_2026-06-26%2015.33.05.jpeg')"></div><div class="b"><h3>{{КАТЕГОРИЯ_ИМ}} с видеонаблюдением</h3><small>{{ГОРОД_ИМ}} · 3,0 км · ★ 4,7</small><span class="price">от {{ЦЕНА_ОТ}} ₽/мес</span></div></article>
+  </div>
+
+  <section class="intro">
+    <h2>Аренда {{КАТЕГОРИЯ_РОД}} в {{ГОРОД_ПРЕД}}</h2>
+    <p>Qubiq — маркетплейс свободного места для хранения и парковки в {{ГОРОД_ПРЕД}}. Здесь можно арендовать {{КАТЕГОРИЯ_ИМ}} напрямую у частных и коммерческих хозяев — часто ближе к дому и дешевле, чем в традиционных складских компаниях. Платите только за используемые квадратные метры, бронируйте онлайн и отменяйте в любой месяц. <!-- Добавьте 150–200 слов уникального текста про спрос и районы города {{ГОРОД_ИМ}} --></p>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">© 2026 Qubiq. Аренда {{КАТЕГОРИЯ_РОД}} в {{ГОРОД_ПРЕД}}. Все права защищены.</div>
+</footer>
+</body>
+</html>

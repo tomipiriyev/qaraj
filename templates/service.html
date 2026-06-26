@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<!--
+  ШАБЛОН: страница услуги (напр. «Хранение вещей», «Хранение шин», «Хранение для бизнеса»).
+  Замените токены при генерации:
+    {{УСЛУГА_ЗАГ}}   — заголовок услуги, напр. «Хранение вещей»
+    {{УСЛУГА_РОД}}   — услуга в род. падеже, напр. «хранения вещей»
+    {{УСЛУГА_SLUG}}  — латиницей для URL, напр. «hranenie-veshchey»
+    {{ПОДТИП_1}}, {{ПОДТИП_2}} — типы места, напр. «кладовки», «склады»
+    {{ЦЕНА_ОТ}}      — минимальная цена, напр. «1500»
+-->
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{УСЛУГА_ЗАГ}} рядом с вами — {{ПОДТИП_1}} и {{ПОДТИП_2}} | Qubiq</title>
+<meta name="description" content="Сравните цены на {{УСЛУГА_РОД}} в вашем районе. Климат-контроль, видеонаблюдение, гибкие сроки от 1 месяца." />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<meta name="theme-color" content="#1f9d55" />
+<link rel="canonical" href="https://qubiq.example/{{УСЛУГА_SLUG}}" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Qubiq" />
+<meta property="og:title" content="{{УСЛУГА_ЗАГ}} рядом с вами — {{ПОДТИП_1}} и {{ПОДТИП_2}} | Qubiq" />
+<meta property="og:description" content="Сравните цены на {{УСЛУГА_РОД}} в вашем районе. Климат-контроль, видеонаблюдение, гибкие сроки от 1 месяца." />
+<meta property="og:url" content="https://qubiq.example/{{УСЛУГА_SLUG}}" />
+<meta property="og:locale" content="ru_RU" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://qubiq.example/" },
+    { "@type": "ListItem", "position": 2, "name": "{{УСЛУГА_ЗАГ}}", "item": "https://qubiq.example/{{УСЛУГА_SLUG}}" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "{{УСЛУГА_ЗАГ}} — Qubiq",
+  "serviceType": "{{УСЛУГА_ЗАГ}}",
+  "provider": { "@type": "Organization", "name": "Qubiq", "url": "https://qubiq.example/" },
+  "areaServed": "RU",
+  "description": "Аренда места для {{УСЛУГА_РОД}}: {{ПОДТИП_1}} и {{ПОДТИП_2}} рядом с вами, от {{ЦЕНА_ОТ}} ₽/мес, климат-контроль, видеонаблюдение, гибкие сроки от 1 месяца.",
+  "offers": { "@type": "Offer", "priceCurrency": "RUB", "price": "{{ЦЕНА_ОТ}}" }
+}
+</script>
+
+<style>
+  :root{--brand:#1f9d55;--brand-2:#34b56a;--brand-deep:#0f5132;--ink:#0f1722;--ink-soft:#475569;--line:#e4ebe6;--bg-soft:#f4f8f5;--bg-tint:#e7f4ec;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:"Inter",system-ui,sans-serif;color:var(--ink);line-height:1.55;}
+  .wrap{width:min(1280px,94%);margin:0 auto;}
+  a{color:inherit;text-decoration:none;}
+  header{border-bottom:1px solid var(--line);}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:66px;}
+  .brand{font-family:"Sora","Inter",sans-serif;font-weight:800;font-size:22px;}
+  .brand b{color:var(--brand);}
+  .crumbs{font-size:13px;color:var(--ink-soft);padding:18px 0;}
+  .hero{background:var(--bg-soft);padding:40px 0 48px;}
+  h1{font-family:"Sora","Inter",sans-serif;font-size:clamp(28px,4vw,40px);letter-spacing:-.02em;margin-bottom:14px;}
+  .hero p{color:var(--ink-soft);font-size:17px;max-width:760px;}
+  .feat{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:44px 0;}
+  .feat .f{border:1px solid var(--line);border-radius:14px;padding:22px;}
+  .feat h3{font-family:"Sora";font-size:17px;margin-bottom:6px;}
+  .feat p{color:var(--ink-soft);font-size:14px;}
+  .cta{display:inline-block;margin-top:8px;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;font-weight:600;padding:13px 22px;border-radius:12px;}
+  .intro{max-width:820px;color:var(--ink-soft);font-size:16px;padding:0 0 48px;}
+  .intro h2{font-family:"Sora";color:var(--ink);font-size:24px;margin:0 0 14px;}
+  footer{background:var(--ink);color:#94a0b8;padding:30px 0;font-size:13px;}
+  @media(max-width:860px){.feat{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <a href="/" class="brand">Qub<b>iq</b></a>
+    <a href="/#ways" style="color:var(--brand);font-weight:600;">Найти место →</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="crumbs"><a href="/">Главная</a> · <span>{{УСЛУГА_ЗАГ}}</span></nav>
+</div>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>{{УСЛУГА_ЗАГ}} рядом с вами — {{ПОДТИП_1}} и {{ПОДТИП_2}}</h1>
+    <p>Сравните цены на {{УСЛУГА_РОД}} в вашем районе. Климат-контроль, видеонаблюдение, гибкие сроки от 1 месяца — от {{ЦЕНА_ОТ}} ₽/мес. Проверенные хозяева, эскроу-оплата и страхование вещей до 2 500 000 ₽.</p>
+    <a class="cta" href="/#ways">Подобрать место</a>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="feat">
+    <div class="f"><h3>Климат-контроль</h3><p>Сухие и отапливаемые помещения для мебели, техники и сезонных вещей.</p></div>
+    <div class="f"><h3>Видеонаблюдение</h3><p>Проверенные хозяева, CCTV и эскроу-оплата — деньги переводятся после заезда.</p></div>
+    <div class="f"><h3>Гибкие сроки</h3><p>Аренда от 1 месяца, оплата только за используемые м², отмена в любой месяц.</p></div>
+  </div>
+
+  <section class="intro">
+    <h2>{{УСЛУГА_ЗАГ}} с Qubiq</h2>
+    <p>Qubiq — маркетплейс свободного места для {{УСЛУГА_РОД}} по модели Airbnb. Арендуйте {{ПОДТИП_1}} или {{ПОДТИП_2}} напрямую у частных и коммерческих хозяев — дешевле, чем в традиционных складских компаниях, и ближе к дому. <!-- Добавьте 150–200 слов уникального текста про услугу {{УСЛУГА_ЗАГ}} --></p>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">© 2026 Qubiq. {{УСЛУГА_ЗАГ}} рядом с вами. Все права защищены.</div>
+</footer>
+</body>
+</html>
