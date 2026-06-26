@@ -18,12 +18,12 @@ Qaraj связывает арендаторов с 5 000+ проверенным
 - Помогите рассчитать: добавьте вещи — Qaraj подскажет нужные м²
 
 ## Ключевые страницы
-- Главная: https://tomipiriyev.github.io/qubiq/
-- Как это работает: https://tomipiriyev.github.io/qubiq/#how
-- Способы аренды: https://tomipiriyev.github.io/qubiq/#ways
-- Владельцам (разместить место): https://tomipiriyev.github.io/qubiq/#owners
-- Безопасность: https://tomipiriyev.github.io/qubiq/#why
-- Вопросы: https://tomipiriyev.github.io/qubiq/#faq
+- Главная: https://tomipiriyev.github.io/qaraj/
+- Как это работает: https://tomipiriyev.github.io/qaraj/#how
+- Способы аренды: https://tomipiriyev.github.io/qaraj/#ways
+- Владельцам (разместить место): https://tomipiriyev.github.io/qaraj/#owners
+- Безопасность: https://tomipiriyev.github.io/qaraj/#why
+- Вопросы: https://tomipiriyev.github.io/qaraj/#faq
 
 ## Для хозяев
 Размещение бесплатно и занимает около 10 минут. Хозяева сами задают цену и доступность, одобряют арендаторов и получают автоматические ежемесячные выплаты. Qaraj берёт на себя бронирования, платежи и страхование.

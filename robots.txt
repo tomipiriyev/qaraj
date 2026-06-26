@@ -23,4 +23,4 @@ Allow: /
 User-agent: YandexBot
 Allow: /
 
-Sitemap: https://tomipiriyev.github.io/qubiq/sitemap.xml
+Sitemap: https://tomipiriyev.github.io/qaraj/sitemap.xml
