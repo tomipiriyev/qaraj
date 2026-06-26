@@ -488,9 +488,12 @@
         linear-gradient(180deg, rgba(10,46,30,.12), rgba(10,46,30,.34)),
         url("images/photo_2026-06-23%2022.11.58.jpeg") center/cover;
     }
-    .phones { transform: none; }
-    .phone { width: 186px; }
-    .phone .screen { height: 392px; }
+    /* one clean upright phone on mobile/tablet (two would clip their content) */
+    .phones { transform: none; justify-content: center; }
+    .phone.right { display: none; }
+    .phone.left { transform: none; margin: 0; }
+    .phone { width: 230px; }
+    .phone .screen { height: 460px; }
     .why-grid, .calc-grid { grid-template-columns: 1fr; gap: 36px; }
     .cat-grid { grid-template-columns: repeat(3,1fr); }
     .ways-grid, .steps, .rev-grid { grid-template-columns: 1fr; }
@@ -507,11 +510,9 @@
     .cat-grid { grid-template-columns: repeat(2,1fr); }
     .stats { grid-template-columns: 1fr; }
     .foot-grid { grid-template-columns: 1fr; }
-    .hero-right { min-height: 420px; padding: 24px 10px; }
-    .phone { width: 152px; }
-    .phone .screen { height: 336px; border-radius: 28px; }
-    .phone.left  { transform: rotate(-6deg) translateY(8px); }
-    .phone.right { transform: rotate(6deg) translateY(8px); margin-left: -28px; }
+    .hero-right { min-height: 420px; padding: 24px 12px; }
+    .phone { width: 215px; }
+    .phone .screen { height: 450px; border-radius: 30px; }
     .m-slide { width: 280px; height: 200px; margin-right: 16px; }
     .stats { padding: 28px; }
     .cta-card { padding: 40px 22px; }
