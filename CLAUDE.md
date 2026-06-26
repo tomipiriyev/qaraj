@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Qubiq — marketing landing page for an Airbnb-style marketplace for unused storage space (garages, basements, spare rooms, warehouse corners, parking, lock-ups). Users can rent by the square meter, by item type (the page suggests needed m²), or rent a full space, monthly or yearly.
+Qaraj — marketing landing page for an Airbnb-style marketplace for unused storage space (garages, basements, spare rooms, warehouse corners, parking, lock-ups). Users can rent by the square meter, by item type (the page suggests needed m²), or rent a full space, monthly or yearly.
 
-**The site is localized for the Russian market.** All visible copy, meta tags, JSON-LD, `llms.txt` and `ai.txt` are in Russian (`<html lang="ru">`); the brand name stays "Qubiq" (Latin). Prices are in ₽ (rubles) throughout — including the calculator's `pricePerSqm` constant — and example cities/names are Russian (Москва, Санкт-Петербург, Казань). Keep new copy in Russian and prices in ₽. See [neighbor-ru-seo-geo-todo.md](neighbor-ru-seo-geo-todo.md) for the SEO/GEO plan this localization follows (only the front-end items are implemented).
+**The site is localized for the Russian market.** All visible copy, meta tags, JSON-LD, `llms.txt` and `ai.txt` are in Russian (`<html lang="ru">`); the brand name stays "Qaraj" (Latin). Prices are in ₽ (rubles) throughout — including the calculator's `pricePerSqm` constant — and example cities/names are Russian (Москва, Санкт-Петербург, Казань). Keep new copy in Russian and prices in ₽. See [neighbor-ru-seo-geo-todo.md](neighbor-ru-seo-geo-todo.md) for the SEO/GEO plan this localization follows (only the front-end items are implemented).
 
 ## Architecture
 
