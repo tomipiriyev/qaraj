@@ -1,0 +1,152 @@
+/* ============================================================
+   Qaraj Web App — «Поиск площади» (#/filters/space)
+   Reuses the .gf-* filter design system from filters.css and adds only
+   what is specific to the sizing assistant.
+   ============================================================ */
+
+/* One centred column, narrower than the garage page's since everything now
+   stacks — the sticky footer keeps its own full-bleed width. */
+.sf{width:min(820px,92%)}
+
+/* ---------- Section 1: item cards ---------- */
+/* four categories, so they sit on one row until the column gets tight */
+.sf-items{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.sf-item{
+  position:relative;display:flex;flex-direction:column;align-items:flex-start;
+  padding:14px 14px 13px;border-radius:var(--radius);text-align:left;
+  border:1.5px solid var(--line-strong);background:#fff;color:var(--ink);
+  transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease,background .2s ease;
+}
+.sf-item:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:var(--ink-mute)}
+.sf-item:active{transform:translateY(-1px)}
+.sf-item-art{
+  position:relative;width:100%;height:132px;border-radius:12px;background:var(--bg-soft);
+  display:grid;place-items:center;overflow:hidden;margin-bottom:10px;
+  transition:background .2s ease;
+}
+/* Sized off the positioned parent, not the grid area: a percentage height on an
+   in-flow img here does not resolve, and insets alone do not stretch a replaced
+   element (auto width/height fall back to its intrinsic size) — either way the
+   render overflowed its box and got clipped. Absolute + explicit calc() sizes
+   resolve against the parent's padding box, and object-fit letterboxes inside. */
+.sf-item-art img{
+  position:absolute;top:10px;left:10px;width:calc(100% - 20px);height:calc(100% - 20px);
+  object-fit:contain;transition:transform .32s cubic-bezier(.22,.9,.3,1);
+}
+.sf-item:hover .sf-item-art img{transform:scale(1.06)}
+.sf-item-ic{color:var(--ink-mute);display:grid;place-items:center;transition:color .2s ease}
+.sf-item-name{font-weight:700;font-size:14.5px;line-height:1.25}
+.sf-item-m2{font-size:12px;color:var(--ink-mute);font-weight:600;margin-top:2px}
+.sf-item.on{border-color:var(--brand);background:var(--brand-tint);box-shadow:0 8px 22px rgba(31,157,85,.16)}
+.sf-item.on .sf-item-art{background:#fff}
+.sf-item.on .sf-item-ic{color:var(--brand-deep)}
+/* the shared tick (filters.css) only springs in for the garage cards — opt in */
+.sf-item .gf-tick{top:10px;right:10px}
+.sf-item.on .gf-tick{transform:scale(1);opacity:1}
+
+/* ---------- Section 2: selected items ---------- */
+.sf-sel{display:flex;flex-direction:column;gap:10px}
+.sf-sel-row{
+  display:grid;grid-template-columns:52px minmax(0,1fr) auto auto 30px;
+  align-items:center;gap:14px;
+  border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:#fff;
+  animation:sf-row-in .26s cubic-bezier(.22,.9,.3,1) both;
+}
+@keyframes sf-row-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.sf-sel-art{
+  position:relative;width:52px;height:44px;border-radius:10px;background:var(--bg-soft);
+  display:grid;place-items:center;overflow:hidden;color:var(--ink-soft);
+}
+.sf-sel-art img{position:absolute;top:4px;left:4px;width:calc(100% - 8px);height:calc(100% - 8px);object-fit:contain}
+.sf-sel-tx{min-width:0;display:flex;flex-direction:column}
+.sf-sel-tx b{font-size:14.5px}
+.sf-sel-tx small{color:var(--ink-mute);font-size:12.5px}
+.sf-sel-m2{font-weight:700;font-size:14.5px;font-variant-numeric:tabular-nums;white-space:nowrap;min-width:58px;text-align:right}
+.sf-sel-x{
+  width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+  color:var(--ink-mute);background:var(--bg-soft);
+  transition:background .18s ease,color .18s ease;
+}
+.sf-sel-x:hover{background:#fde8e8;color:#dc2626}
+
+.sf-qty{display:flex;align-items:center;gap:4px}
+.sf-qty .rnd{
+  width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line-strong);background:#fff;
+  display:grid;place-items:center;font-size:17px;font-weight:700;line-height:1;color:var(--ink);
+  transition:border-color .16s ease,background .16s ease,transform .16s ease;
+}
+.sf-qty .rnd:hover{border-color:var(--brand);color:var(--brand-deep)}
+.sf-qty .rnd:active{transform:scale(.9)}
+.sf-qty-n{min-width:26px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+
+.sf-empty{
+  border:1.5px dashed var(--line-strong);border-radius:var(--radius);padding:26px 20px;
+  display:flex;align-items:center;gap:14px;color:var(--ink-mute);
+}
+.sf-empty p{font-size:14px;max-width:38ch}
+
+/* ---------- Section 3: recommendation + size ---------- */
+.sf-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.sf-card{
+  border:1px solid var(--line-strong);border-radius:14px;padding:13px 15px;
+  display:flex;flex-direction:column;gap:1px;
+}
+.sf-card small{font-size:11.5px;font-weight:700;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em}
+.sf-card b{font-size:24px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.2}
+.sf-card span{font-size:12.5px;color:var(--ink-soft)}
+.sf-card.accent{border-color:var(--brand);background:var(--brand-tint)}
+.sf-card.accent b{color:var(--brand-deep)}
+.sf-card.accent span{color:var(--brand-deep);opacity:.8;font-weight:600}
+
+.sf-size-ctl{display:flex;align-items:center;gap:14px}
+.sf-size-ctl .rnd.big{
+  width:40px;height:40px;flex:0 0 auto;border-radius:50%;border:1.5px solid var(--line-strong);background:#fff;
+  display:grid;place-items:center;font-size:20px;font-weight:700;line-height:1;color:var(--ink);
+  transition:border-color .16s ease,color .16s ease,transform .16s ease;
+}
+.sf-size-ctl .rnd.big:hover{border-color:var(--brand);color:var(--brand-deep)}
+.sf-size-ctl .rnd.big:active{transform:scale(.92)}
+.sf-size-slider{position:relative;flex:1;height:38px}
+.sf-size-slider .gf-rail,.sf-size-slider .gf-rail-on{top:16px}
+.sf-size-hint{margin-top:12px;font-size:13px;color:var(--ink-mute)}
+.sf-size-hint .linkbtn{font-size:13px;font-weight:700;color:var(--brand-deep);text-decoration:underline}
+
+/* ---------- Sticky summary ---------- */
+.sf-foot .gf-foot-in{gap:20px;width:min(820px,92%)}
+.sf-foot-sum{display:flex;align-items:center;gap:26px;min-width:0}
+.sf-foot-cell{display:flex;flex-direction:column;line-height:1.25}
+.sf-foot-cell small{font-size:11.5px;font-weight:700;color:var(--ink-mute);text-transform:uppercase;letter-spacing:.05em}
+.sf-foot-cell b{font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sf-foot-btns{display:flex;align-items:center;gap:12px;margin-left:auto}
+
+/* ---------- Responsive ---------- */
+@media (max-width:860px){
+  .sf{width:92%}
+  .sf-foot .gf-foot-in{width:92%}
+  .sf-items{grid-template-columns:repeat(2,1fr);gap:12px}
+  .sf-item-art{height:104px}
+  .sf-cards{grid-template-columns:1fr}
+  .sf-foot .gf-foot-in{flex-wrap:wrap;gap:12px}
+  .sf-foot-sum{gap:20px;order:1;flex:1}
+  .sf-foot-btns{order:2;margin-left:0;width:100%}
+  .sf-foot-btns .gf-show{flex:1}
+}
+@media (max-width:560px){
+  .sf-items{gap:10px}
+  .sf-item-art{height:88px}
+  .sf-item-name{font-size:13.5px}
+  /* the row collapses to two lines: art + name/qty, then the m² total */
+  .sf-sel-row{grid-template-columns:46px minmax(0,1fr) 30px;gap:10px;row-gap:8px}
+  .sf-sel-art{width:46px;height:40px}
+  .sf-sel-x{grid-column:3;grid-row:1}
+  .sf-qty{grid-column:2;grid-row:2}
+  .sf-sel-m2{grid-column:3;grid-row:2;min-width:0}
+  .sf-foot-cell b{font-size:15.5px}
+  .sf-foot-sum{gap:16px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .sf-item,.sf-item-art img,.sf-sel-row,.sf-qty .rnd,.sf-size-ctl .rnd.big{
+    animation:none !important;transition:none !important;
+  }
+}

@@ -1,0 +1,173 @@
+/* ============================================================
+   Qaraj Web App — home hero (#/)
+   Tagline → three large category cards → the search bar. Nothing else:
+   the search is the page.
+   ============================================================ */
+
+.home{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:min(880px,92%);margin:0 auto;text-align:center;
+  /* the uneven padding rides the centred block above the optical middle, which
+     also leaves the search dropdown more room below the bar */
+  padding:clamp(8px,1.5vh,24px) 0 clamp(60px,22vh,290px);
+}
+.home > *{animation:home-in .5s cubic-bezier(.22,.9,.3,1) both}
+.home > :nth-child(2){animation-delay:.05s}
+.home > :nth-child(3){animation-delay:.1s}
+.home > :nth-child(4){animation-delay:.15s}
+@keyframes home-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.home-title{
+  font-size:clamp(30px,4.6vw,52px);letter-spacing:-.035em;line-height:1.06;
+  max-width:17ch;text-wrap:balance;
+}
+.home-sub{
+  margin-top:16px;font-size:clamp(15px,1.5vw,18px);color:var(--ink-soft);
+  max-width:46ch;line-height:1.5;text-wrap:balance;
+}
+
+/* ---------- Category cards ---------- */
+.home-cats{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+  width:100%;margin:clamp(30px,5.5vh,56px) 0 clamp(18px,2.5vh,26px);
+}
+.home-cat{
+  position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:26px 18px 20px;border-radius:20px;background:#fff;color:var(--ink);
+  border:1.5px solid var(--line);box-shadow:var(--shadow-sm);
+  transition:border-color .22s ease,box-shadow .26s ease,transform .26s cubic-bezier(.22,.9,.3,1),background .22s ease;
+}
+.home-cat:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);border-color:var(--line-strong)}
+.home-cat:active{transform:translateY(-1px)}
+.home-cat:focus-visible{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-tint)}
+.home-cat-art{
+  --art-h:190px;
+  display:grid;place-items:center;width:100%;height:var(--art-h);margin-bottom:10px;
+  color:var(--ink-soft);overflow:hidden;
+  transition:color .24s ease,transform .32s cubic-bezier(.22,.9,.3,1);
+}
+/* The facility renders ship on a white backdrop, so multiply drops the white
+   onto the card — white when idle, brand tint when selected — with no cutouts.
+   The render is shown whole: height is capped at the box and max-width scales
+   it down further on narrow cards, so nothing is ever clipped. Height must be
+   an explicit length — a percentage against the auto grid row would resolve to
+   the image's intrinsic size and overflow the card. */
+.home-cat-art img{
+  height:var(--art-h);width:auto;max-width:100%;object-fit:contain;
+  mix-blend-mode:multiply;
+}
+.home-cat:hover .home-cat-art{transform:scale(1.06)}
+.home-cat-name{font-weight:700;font-size:17.5px;letter-spacing:-.01em}
+.home-cat-sub{font-size:13px;color:var(--ink-mute);font-weight:600}
+
+.home-cat.on{
+  border-color:var(--brand);background:var(--brand-tint);
+  box-shadow:0 10px 30px rgba(31,157,85,.18);
+}
+.home-cat.on .home-cat-art{color:var(--brand-deep)}
+.home-cat.on .home-cat-sub{color:var(--brand-deep);opacity:.75}
+/* the selection tick grows out of the corner */
+.home-cat::after{
+  content:"";position:absolute;top:14px;right:14px;width:20px;height:20px;border-radius:50%;
+  background:var(--brand) center/11px 11px no-repeat;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 5 5 9-11'/%3E%3C/svg%3E");
+  transform:scale(0);opacity:0;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .16s ease;
+}
+.home-cat.on::after{transform:scale(1);opacity:1}
+
+/* ---------- Search bar ---------- */
+/* z-index: the entry animation runs with fill `both`, so .home-box keeps a
+   stacking context of its own — the dropdown inside it can never outrank the
+   box. 55 puts it over the scrim (40) and the mobile nav (50), which would
+   otherwise paint dimmed / on top of the panel, and under the appbar (60). */
+.home-box{position:relative;z-index:55;width:100%;flex:0 0 auto;max-width:none}
+.home-bar{
+  display:flex;align-items:center;gap:6px;width:100%;
+  background:#fff;border:1px solid var(--line-strong);border-radius:var(--radius-pill);
+  box-shadow:var(--shadow-md);padding:8px 8px 8px 10px;
+  transition:box-shadow .22s ease,border-color .22s ease;
+}
+.home-bar:hover{box-shadow:var(--shadow-lg)}
+.home-bar:focus-within{border-color:var(--brand);box-shadow:var(--shadow-lg)}
+
+.hb-loc{
+  display:flex;align-items:center;gap:8px;flex:0 0 auto;max-width:190px;
+  padding:11px 14px;border-radius:var(--radius-pill);font-weight:700;font-size:15px;color:var(--ink);
+  transition:background .18s ease;
+}
+.hb-loc:hover{background:var(--bg-soft)}
+.hb-loc svg{stroke:var(--brand);flex:0 0 auto}
+.hb-loc span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb-div{width:1px;height:26px;background:var(--line);flex:0 0 auto}
+
+/* "Когда": a prompt until a range is picked, then the range itself */
+.hb-when{
+  display:flex;align-items:center;gap:10px;flex:1;min-width:0;
+  padding:11px 14px;border-radius:var(--radius-pill);text-align:left;
+  font-size:15.5px;font-weight:500;color:var(--ink-mute);
+  transition:background .18s ease,color .18s ease;
+}
+.hb-when:hover{background:var(--bg-soft)}
+.hb-when svg{stroke:currentColor;flex:0 0 auto}
+.hb-when span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb-when.filled{color:var(--ink);font-weight:700}
+.hb-when.filled svg{stroke:var(--brand)}
+.hb-go{flex:0 0 auto;border-radius:var(--radius-pill);padding:13px 26px;font-size:15.5px}
+
+/* While the dropdown is open the bar recedes and the segment that owns the
+   panel lifts out of it — the same treatment as the appbar pill. */
+.home-bar.searching,
+.home-bar.searching:hover{
+  background:#e9edea;border-color:transparent;box-shadow:inset 0 0 0 1px var(--line);
+}
+.home-bar.searching .hb-div{opacity:0}
+.home-bar.searching .hb-loc,
+.home-bar.searching .hb-when{background:transparent}
+.home-bar.searching .hb-loc:hover,
+.home-bar.searching .hb-when:hover{background:rgba(255,255,255,.55)}
+.home-bar.searching .hb-loc.active,
+.home-bar.searching .hb-when.active{background:#fff;box-shadow:0 3px 12px rgba(15,23,34,.14)}
+
+/* the place dropdown hangs under the bar, left-aligned with it */
+.home-box .searchpop{top:calc(100% + 10px)}
+
+/* ---------- Responsive ---------- */
+@media (max-width:760px){
+  .home{padding-top:clamp(18px,3vh,32px);justify-content:flex-start}
+  .home-title{font-size:clamp(27px,7vw,34px);max-width:20ch}
+  .home-sub{font-size:15px}
+  .home-cats{gap:10px}
+  .home-cat{padding:18px 10px 14px;border-radius:16px}
+  /* three narrow cards: the render is width-limited, so the box tracks that */
+  .home-cat-art{--art-h:100px;margin-bottom:6px}
+  .home-cat-art svg{width:42px;height:42px}
+  .home-cat-name{font-size:14.5px}
+  .home-cat-sub{font-size:11.5px}
+  .home-cat:hover{transform:none}
+  /* the bar becomes a stacked card: location, dates, then a full-width button */
+  .home-bar{flex-wrap:wrap;border-radius:24px;padding:8px;gap:4px}
+  .hb-loc{order:1;max-width:none;flex:1}
+  .hb-div{display:none}
+  .hb-when{order:2;flex:1 1 100%;border-radius:14px;border-top:1px solid var(--line)}
+  .hb-go{order:3;flex:1 1 100%;margin-top:4px}
+}
+/* tightest three-across band: the sub-label would wrap onto two lines and only
+   on one card, so drop it — the category name carries the meaning */
+@media (min-width:421px) and (max-width:600px){
+  .home-cat-sub{display:none}
+  .home-cat{padding-bottom:18px}
+}
+@media (max-width:420px){
+  .home-cats{grid-template-columns:1fr;gap:8px}
+  .home-cat{flex-direction:row;align-items:center;gap:14px;padding:12px 16px;text-align:left}
+  /* side by side with the label: no room to crop, so show the render whole */
+  .home-cat-art{--art-h:84px;width:108px;height:var(--art-h);margin:0;flex:0 0 auto}
+  .home-cat-art svg{width:34px;height:34px}
+  .home-cat-art img{width:100%}
+  .home-cat::after{top:50%;margin-top:-10px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .home > *,.home-cat,.home-cat-art,.home-cat::after{animation:none !important;transition:none !important}
+}
