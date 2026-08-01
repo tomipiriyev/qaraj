@@ -5,18 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Qaraj — приложение</title>
 <meta name="robots" content="noindex, nofollow">
+<!-- the shell must not be cached, or a browser keeps serving an old copy
+     and never sees the ?v= bumps on the assets below -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <meta name="theme-color" content="#0f5132">
 <meta name="description" content="Веб-приложение Qaraj — поиск и аренда места для хранения: склады, площади по м² и гаражи.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231f9d55'/%3E%3Cpath d='M12 4 4 8v8l8 4 8-4V8l-8-4Z' fill='none' stroke='white' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/app.css">
-<link rel="stylesheet" href="styles/host.css">
-<link rel="stylesheet" href="styles/signup.css">
-<link rel="stylesheet" href="styles/filters.css">
-<link rel="stylesheet" href="styles/space.css">
-<link rel="stylesheet" href="styles/home.css">
+<!-- ?v= busts the cache: the modules cross-reference each other, so a
+     stale mix of old and new files fails in confusing ways. Bump on release. -->
+<link rel="stylesheet" href="styles/app.css?v=20260801a">
+<link rel="stylesheet" href="styles/host.css?v=20260801a">
+<link rel="stylesheet" href="styles/signup.css?v=20260801a">
+<link rel="stylesheet" href="styles/filters.css?v=20260801a">
+<link rel="stylesheet" href="styles/space.css?v=20260801a">
+<link rel="stylesheet" href="styles/home.css?v=20260801a">
 </head>
 <body>
   <div id="app"><!-- rendered by router --></div>
@@ -27,17 +33,18 @@
        (JavaScript API) and allow this site's host on it. -->
   <script>window.QARAJ_YMAPS_KEY = "ebe5de2c-218e-438c-ba40-fdf27150e40e";</script>
 
-  <script src="js/data.js"></script>
-  <script src="js/store.js"></script>
-  <script src="js/components.js"></script>
-  <script src="js/views.js"></script>
-  <script src="js/filterkit.js"></script>
-  <script src="js/filters.js"></script>
-  <script src="js/space.js"></script>
-  <script src="js/ymap.js"></script>
-  <script src="js/router.js"></script>
-  <script src="js/host.js"></script>
-  <script src="js/signup.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/data.js?v=20260801a"></script>
+  <script src="js/store.js?v=20260801a"></script>
+  <script src="js/components.js?v=20260801a"></script>
+  <script src="js/views.js?v=20260801a"></script>
+  <script src="js/filterkit.js?v=20260801a"></script>
+  <script src="js/filters.js?v=20260801a"></script>
+  <script src="js/space.js?v=20260801a"></script>
+  <script src="js/sklad.js?v=20260801a"></script>
+  <script src="js/ymap.js?v=20260801a"></script>
+  <script src="js/router.js?v=20260801a"></script>
+  <script src="js/host.js?v=20260801a"></script>
+  <script src="js/signup.js?v=20260801a"></script>
+  <script src="js/app.js?v=20260801a"></script>
 </body>
 </html>

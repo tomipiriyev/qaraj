@@ -24,15 +24,15 @@
         '<button type="button" class="btn btn-block" data-action="login-demo" style="background:var(--bg-soft);color:var(--ink);margin-top:10px">Войти как демо-гость</button>' +
         '<div class="signin-alt">Нет аккаунта? <a href="#/signup" data-link>Зарегистрироваться</a></div>' +
         '<div class="signin-legal">Вход не отправляет данные на сервер — сессия хранится только в этом браузере.</div>' +
-        '<div style="text-align:center;margin-top:14px"><a href="../" style="color:var(--ink-mute);font-size:12.5px">← На главную сайта</a></div>' +
+        '<div style="text-align:center;margin-top:14px"><a href="../" style="color:var(--ink-mute);font-size:13px">← На главную сайта</a></div>' +
       '</form></div>' +
     '</div>';
   }
 
   /* ---------- Home (hero: tagline → category → search) ----------
      The landing page owns the whole search intent: pick one of the three kinds
-     of place, optionally narrow by city and free text, then Найти routes on to
-     the category's filter page (Гараж / Площадь) or straight to results. */
+     of place, optionally narrow by city and free text, then Найти goes straight
+     to the results for every category — refining is offered there, not before. */
   const HOME_CATS = ["ploshad", "garage", "sklad"];   // Space · Garage · Storage
   // 3D renders in images/facilities/ stand in for the flat icons on the home cards
   const HOME_CAT_ART = { ploshad: "space", garage: "garage", sklad: "storage" };
@@ -76,7 +76,7 @@
           '</form>' +
           '<div class="searchpop-host"></div>' +
         '</div>' +
-      '</main>' + c.mobilenav("explore");
+      '</main>' + c.sitefoot() + c.mobilenav("explore");
   }
 
   function emptyResults() {
@@ -105,6 +105,7 @@
               (when ? ' · ' + when : "") + '</h1>' +
             '<span class="rh-note">' + ic("tag", 18, 1.7) + 'Цены с учётом всех сборов</span>' +
           '</div>' +
+          c.refinePrompt(s) +
           (list.length ? '<div class="grid">' + list.map(c.card).join("") + '</div>' : emptyResults()) +
         '</div>' +
         c.mapPane(list) +
@@ -196,8 +197,8 @@
         '<a data-action="noop">Способы связи <span class="chev">' + ic("chevR",16,2) + '</span></a>' +
         '<a data-action="noop">Помощь <span class="chev">' + ic("chevR",16,2) + '</span></a>' +
       '</div>' +
-      '<div style="max-width:520px;margin-top:18px"><button class="btn btn-block" style="background:var(--bg-soft);color:#dc2626" data-action="logout">Выйти</button></div>' +
-      '<div style="max-width:520px;text-align:center;margin-top:14px"><a href="../" style="color:var(--ink-mute);font-size:12.5px">← На главную сайта</a></div>' +
+      '<div style="max-width:520px;margin-top:18px"><button class="btn btn-block" style="background:var(--bg-soft);color:var(--danger)" data-action="logout">Выйти</button></div>' +
+      '<div style="max-width:520px;text-align:center;margin-top:14px"><a href="../" style="color:var(--ink-mute);font-size:13px">← На главную сайта</a></div>' +
       '</main>' + c.mobilenav("profile");
   }
 

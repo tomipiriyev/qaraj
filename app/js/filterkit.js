@@ -1,10 +1,10 @@
-/* Qaraj web app — shared building blocks for the category filter pages
-   (#/filters/garage and #/filters/space).
+/* Qaraj web app — shared building blocks for the category filter sets, which
+   are rendered into the Фильтры modal (see components.js `filterModal`).
 
-   Every helper is namespaced by `ns` ("gf" / "sf"), which prefixes both the
+   Every helper is namespaced by `ns` ("gf" / "sf" / "kf"), which prefixes both the
    element ids it generates (gfMin, sfMin…) and the data-action names its
    controls fire (gf-price, sf-price…). That lets two structurally identical
-   pages coexist with their own handlers and no id collisions, while sharing
+   sets coexist with their own handlers and no id collisions, while sharing
    one set of CSS classes (the `.gf-*` filter design system in filters.css). */
 (function (Q) {
   const D = Q.data, c = Q.c, ic = Q.c.ic;
@@ -18,9 +18,16 @@
   function priceText(n, P) { return n >= P.max ? D.fmt(n) + "+ ₽" : D.fmt(n) + " ₽"; }
 
   /* Dual-handle slider: two stacked range inputs with pointer-events off except
-     on the thumbs, so both handles stay reachable and keyboard-operable. */
+     on the thumbs, so both handles stay reachable and keyboard-operable.
+
+     Defaults to money. Pass `fmt` (a value → string formatter) to measure
+     something else — the склад page uses one for its м² range — plus `unit`
+     for the aria labels. The top handle always reads "and above", so `fmt` is
+     given the raw value and the "+" is appended here. */
   function dualSlider(o) {
     const P = o.P, span = P.max - P.min, ns = o.ns;
+    const fmt = o.fmt || (v => D.fmt(v) + " ₽");
+    const unit = o.unit || "цена";
     const pct = v => ((v - P.min) / span) * 100;
     const peak = Math.max.apply(null, o.bars) || 1;
     const hist = o.bars.map((h, i) =>
@@ -32,26 +39,29 @@
         '<span class="gf-rail"></span>' +
         '<span class="gf-rail-on" id="' + ns + 'Rail" style="left:' + pct(o.lo) + '%;right:' + (100 - pct(o.hi)) + '%"></span>' +
         '<input type="range" class="gf-range lo" id="' + ns + 'Min" min="' + P.min + '" max="' + P.max + '" step="' + P.step + '" value="' + o.lo + '" ' +
-          'data-action="' + ns + '-price" data-end="min" aria-label="Минимальная цена">' +
+          'data-action="' + ns + '-price" data-end="min" aria-label="Минимальная ' + unit + '">' +
         '<input type="range" class="gf-range hi" id="' + ns + 'Max" min="' + P.min + '" max="' + P.max + '" step="' + P.step + '" value="' + o.hi + '" ' +
-          'data-action="' + ns + '-price" data-end="max" aria-label="Максимальная цена">' +
+          'data-action="' + ns + '-price" data-end="max" aria-label="Максимальная ' + unit + '">' +
       '</div>' +
       '<div class="gf-price-out">' +
-        '<div class="gf-price-box"><small>Минимум</small><b id="' + ns + 'MinOut">' + D.fmt(o.lo) + ' ₽</b></div>' +
+        '<div class="gf-price-box"><small>Минимум</small><b id="' + ns + 'MinOut">' + fmt(o.lo) + '</b></div>' +
         '<span class="gf-price-dash"></span>' +
-        '<div class="gf-price-box"><small>Максимум</small><b id="' + ns + 'MaxOut">' + priceText(o.hi, P) + '</b></div>' +
+        '<div class="gf-price-box"><small>Максимум</small><b id="' + ns + 'MaxOut">' + topText(o.hi, P, fmt) + '</b></div>' +
       '</div>' +
     '</div>';
   }
+  /* The high handle at the top of the domain means "and above". */
+  function topText(v, P, fmt) { return v >= P.max ? fmt(v) + "+" : fmt(v); }
   /* Repaint just the readouts + rail + bars — called on every drag frame, so it
      must never touch the inputs the user is holding. */
-  function repaintSlider(ns, P, lo, hi) {
+  function repaintSlider(ns, P, lo, hi, fmt) {
+    const f = fmt || (v => D.fmt(v) + " ₽");
     const span = P.max - P.min, pct = v => ((v - P.min) / span) * 100;
     const rail = document.getElementById(ns + "Rail");
     if (rail) { rail.style.left = pct(lo) + "%"; rail.style.right = (100 - pct(hi)) + "%"; }
     const a = document.getElementById(ns + "MinOut"), b = document.getElementById(ns + "MaxOut");
-    if (a) a.textContent = D.fmt(lo) + " ₽";
-    if (b) b.textContent = priceText(hi, P);
+    if (a) a.textContent = f(lo);
+    if (b) b.textContent = topText(hi, P, f);
     const hist = document.getElementById(ns + "Hist");
     if (hist) {
       const bars = hist.children, n = bars.length;
@@ -127,6 +137,6 @@
       '<span class="gf-switch-ui"></span><span>Свободно сейчас</span></label>';
   }
 
-  Q.kit = { barLit, priceText, dualSlider, repaintSlider, clampHandle, radiusChips,
+  Q.kit = { barLit, priceText, topText, dualSlider, repaintSlider, clampHandle, radiusChips,
             featureChips, availability, nextRange, sortSelect, section, nowSwitch };
 })(window.Q = window.Q || {});

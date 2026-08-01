@@ -1,11 +1,10 @@
-/* Qaraj web app — «Поиск гаража»: the garage filter page (#/filters/garage).
-   Reached instead of the results grid when you search in the Гараж category.
+/* Qaraj web app — «Поиск гаража»: the Гараж filter set.
+   Supplies the sections and the footer bar for the Фильтры modal (see
+   components.js `filterModal`); it no longer renders a page of its own.
 
-   State lives in three places, in this order of authority:
-     1. `f`  — the working copy this module edits while the page is open
-     2. the URL query (?veh=car&min=6000…) — written on every change, shareable
-     3. Q.store.get().garage — committed on «Показать», so results and a later
-        return to this page both see the same filters.
+   State lives in two places:
+     1. `f` — the working copy this module edits while the modal is open
+     2. Q.store.get().garage — committed on «Показать»
    Counts recompute on every interaction; only the touched nodes are repainted,
    so focus and the slider drag are never interrupted. */
 (function (Q) {
@@ -13,36 +12,6 @@
 
   let f = null;               // working filter set while the page is mounted
 
-  /* ---------- URL <-> filter set ----------
-     Move-in dates are the search bar's, not this page's, so they stay out. */
-  const KEYS = { vehicle: "veh", parking: "park", priceMin: "min", priceMax: "max",
-                 radiusKm: "km", sort: "sort" };
-  function toQuery(v) {
-    const q = {}, d = D.garageDefaults();
-    Object.keys(KEYS).forEach(k => { if (v[k] && v[k] !== d[k]) q[KEYS[k]] = v[k]; });
-    if (v.features.length) q.feat = v.features.join(",");
-    if (v.nowOnly) q.now = "1";
-    return q;
-  }
-  function fromQuery(q) {
-    const v = D.garageDefaults();
-    const num = (s, fb) => { const n = parseInt(s, 10); return isNaN(n) ? fb : n; };
-    if (q.veh && D.vehicleTypes.some(t => t.id === q.veh)) v.vehicle = q.veh;
-    if (q.park && D.parkingTypes.some(t => t.id === q.park)) v.parking = q.park;
-    v.priceMin = clampPrice(num(q.min, v.priceMin));
-    v.priceMax = clampPrice(num(q.max, v.priceMax));
-    if (v.priceMin > v.priceMax) { const t = v.priceMin; v.priceMin = v.priceMax; v.priceMax = t; }
-    if (q.km !== undefined && D.radiusOptions.some(r => r.km === num(q.km, -1))) v.radiusKm = num(q.km, 0);
-    if (q.feat) v.features = q.feat.split(",").filter(x => D.garageFeatures.some(g => g.id === x));
-    if (q.sort && D.sortOptions.some(s => s.id === q.sort)) v.sort = q.sort;
-    v.nowOnly = q.now === "1";
-    return v;
-  }
-  function clampPrice(n) {
-    const P = D.GARAGE_PRICE;
-    return Math.max(P.min, Math.min(P.max, Math.round(n / P.step) * P.step));
-  }
-  function syncURL() { Q.router.setQuery(toQuery(f)); }
 
   /* ---------- Live results ---------- */
   function results() { return D.garageResults(f, Q.store.place()); }
@@ -108,37 +77,17 @@
     '</div></div>';
   }
 
-  /* ---------- The page ---------- */
-  function garageFilters() {
-    f = fromQuery(Q.router.query());
-    // an empty query means "carry on from wherever the user left off"
-    if (!Object.keys(Q.router.query()).length) f = Object.assign(D.garageDefaults(), Q.store.get().garage);
+  /* ---------- Sections for the Фильтры modal ---------- */
+  function sections() {
+    f = Object.assign(D.garageDefaults(), Q.store.get().garage);
     readDates();
-
-    const place = Q.store.place();
-    const where = place.kind === "any" ? "" : ' · ' + esc(place.name);
-    return c.appbar("") +
-      '<main class="gf">' +
-        '<header class="gf-head">' +
-          '<button type="button" class="gf-back" data-action="gf-back" aria-label="Назад">' + ic("arrowL", 20, 2) + '</button>' +
-          '<div class="gf-head-tx"><h1>Поиск гаража</h1>' +
-            '<p>Найдите подходящий гараж для вашего автомобиля' + where + '.</p></div>' +
-          '<button type="button" class="gf-info" data-action="gf-info" aria-label="Как работают фильтры">' + ic("info", 20, 1.8) + '</button>' +
-        '</header>' +
-
-        section("veh", "Тип транспорта", "Подберём гараж по габаритам вашего авто.", vehicleCards()) +
-        section("park", "Тип парковки", "Открытая площадка или закрытый бокс.", parkingCards()) +
-        section("price", "Бюджет в месяц", "Выберите комфортную стоимость аренды в месяц.", priceSlider()) +
-        section("dist", "Расстояние", "Радиус поиска от выбранного места.", radiusChips()) +
-        section("feat", "Оснащение гаража", "Отметьте всё, что вам нужно.", featureChips()) +
-        section("avail", "Доступность", "Когда планируете заехать?", availability(), K.nowSwitch("gf", f.nowOnly)) +
-        section("sort", "Сортировка", "Как показать результаты.", sortSelect()) +
-
-        '<div class="gf-foot-spacer"></div>' +
-      '</main>' +
-      // no mobile tab bar here: the page is a focused task with its own
-      // sticky action bar, and two stacked bottom bars fight for the same space
-      footBar();
+    return section("veh", "Тип транспорта", "Подберём гараж по габаритам вашего авто.", vehicleCards()) +
+      section("park", "Тип парковки", "Открытая площадка или закрытый бокс.", parkingCards()) +
+      section("price", "Бюджет в месяц", "Выберите комфортную стоимость аренды в месяц.", priceSlider()) +
+      section("dist", "Расстояние", "Радиус поиска от выбранного места.", radiusChips()) +
+      section("feat", "Оснащение гаража", "Отметьте всё, что вам нужно.", featureChips()) +
+      section("avail", "Доступность", "Когда планируете заехать?", availability(), K.nowSwitch("gf", f.nowOnly)) +
+      section("sort", "Сортировка", "Как показать результаты.", sortSelect());
   }
 
   /* ---------- Repaint helpers (surgical, never the whole page) ---------- */
@@ -147,7 +96,7 @@
     const bar = document.querySelector(".gf-foot");
     if (bar) bar.outerHTML = footBar();
   }
-  function afterChange() { syncURL(); repaintFoot(); }
+  function afterChange() { repaintFoot(); }
 
   function repaintPriceOut() { K.repaintSlider("gf", P(), f.priceMin, f.priceMax); }
   function repaintAvail() { repaint("#gfAvail", availability()); }
@@ -157,13 +106,6 @@
     const t = e.target.closest("[data-action]");
     if (!t || !f) return;
     switch (t.dataset.action) {
-      case "gf-back":
-        if (history.length > 1) history.back(); else Q.router.navigate("#/");
-        break;
-      case "gf-info":
-        Q.app.toast("Фильтры применяются сразу — счётчик внизу показывает, сколько гаражей подходит.");
-        break;
-
       case "gf-veh": {                       // single select, click again to clear
         f.vehicle = f.vehicle === t.dataset.id ? null : t.dataset.id;
         repaint(".gf-veh", vehicleCards()); afterChange();
@@ -210,7 +152,7 @@
       }
       case "gf-apply": {
         Q.store.set({ category: "garage", garage: Object.assign({}, f), selectedId: null });
-        Q.router.navigate("#/search");
+        Q.app.applyFilters();
         break;
       }
     }
@@ -238,6 +180,5 @@
   /* the page owns `f` only while it is mounted */
   function unmount() { f = null; }
 
-  Q.filters = { garageFilters, unmount, syncDates };
-  Q.views.garageFilters = garageFilters;
+  Q.filters = { sections, footBar, unmount, syncDates };
 })(window.Q = window.Q || {});

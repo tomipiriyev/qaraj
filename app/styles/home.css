@@ -10,6 +10,10 @@
   /* the uneven padding rides the centred block above the optical middle, which
      also leaves the search dropdown more room below the bar */
   padding:clamp(8px,1.5vh,24px) 0 clamp(60px,22vh,290px);
+  /* the footer below is a flex sibling, so flex:1 alone would let the hero be
+     squeezed to make room for it. Pinning the height to the viewport minus the
+     appbar keeps the hero full-bleed and drops the footer below the fold. */
+  min-height:calc(100svh - var(--appbar-h) - 1px);
 }
 .home > *{animation:home-in .5s cubic-bezier(.22,.9,.3,1) both}
 .home > :nth-child(2){animation-delay:.05s}
@@ -33,7 +37,7 @@
 }
 .home-cat{
   position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;
-  padding:26px 18px 20px;border-radius:20px;background:#fff;color:var(--ink);
+  padding:26px 18px 20px;border-radius:var(--radius-lg);background:#fff;color:var(--ink);
   border:1.5px solid var(--line);box-shadow:var(--shadow-sm);
   transition:border-color .22s ease,box-shadow .26s ease,transform .26s cubic-bezier(.22,.9,.3,1),background .22s ease;
 }
@@ -57,7 +61,7 @@
   mix-blend-mode:multiply;
 }
 .home-cat:hover .home-cat-art{transform:scale(1.06)}
-.home-cat-name{font-weight:700;font-size:17.5px;letter-spacing:-.01em}
+.home-cat-name{font-weight:700;font-size:18px;letter-spacing:-.01em}
 .home-cat-sub{font-size:13px;color:var(--ink-mute);font-weight:600}
 
 .home-cat.on{
@@ -105,7 +109,7 @@
 .hb-when{
   display:flex;align-items:center;gap:10px;flex:1;min-width:0;
   padding:11px 14px;border-radius:var(--radius-pill);text-align:left;
-  font-size:15.5px;font-weight:500;color:var(--ink-mute);
+  font-size:16px;font-weight:500;color:var(--ink-mute);
   transition:background .18s ease,color .18s ease;
 }
 .hb-when:hover{background:var(--bg-soft)}
@@ -113,13 +117,13 @@
 .hb-when span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hb-when.filled{color:var(--ink);font-weight:700}
 .hb-when.filled svg{stroke:var(--brand)}
-.hb-go{flex:0 0 auto;border-radius:var(--radius-pill);padding:13px 26px;font-size:15.5px}
+.hb-go{flex:0 0 auto;border-radius:var(--radius-pill);padding:13px 26px;font-size:16px}
 
 /* While the dropdown is open the bar recedes and the segment that owns the
    panel lifts out of it — the same treatment as the appbar pill. */
 .home-bar.searching,
 .home-bar.searching:hover{
-  background:#e9edea;border-color:transparent;box-shadow:inset 0 0 0 1px var(--line);
+  background:var(--bg-tint);border-color:transparent;box-shadow:inset 0 0 0 1px var(--line);
 }
 .home-bar.searching .hb-div{opacity:0}
 .home-bar.searching .hb-loc,
@@ -134,22 +138,24 @@
 
 /* ---------- Responsive ---------- */
 @media (max-width:760px){
-  .home{padding-top:clamp(18px,3vh,32px);justify-content:flex-start}
+  /* the bar collapses to a single brand+menu row here (~72px), so the hero's
+     viewport reservation has to shrink with it */
+  .home{padding-top:clamp(18px,3vh,32px);justify-content:flex-start;min-height:calc(100svh - 72px)}
   .home-title{font-size:clamp(27px,7vw,34px);max-width:20ch}
   .home-sub{font-size:15px}
   .home-cats{gap:10px}
-  .home-cat{padding:18px 10px 14px;border-radius:16px}
+  .home-cat{padding:18px 10px 14px;border-radius:var(--radius)}
   /* three narrow cards: the render is width-limited, so the box tracks that */
   .home-cat-art{--art-h:100px;margin-bottom:6px}
   .home-cat-art svg{width:42px;height:42px}
-  .home-cat-name{font-size:14.5px}
-  .home-cat-sub{font-size:11.5px}
+  .home-cat-name{font-size:15px}
+  .home-cat-sub{font-size:12px}
   .home-cat:hover{transform:none}
   /* the bar becomes a stacked card: location, dates, then a full-width button */
-  .home-bar{flex-wrap:wrap;border-radius:24px;padding:8px;gap:4px}
+  .home-bar{flex-wrap:wrap;border-radius:var(--radius-xl);padding:8px;gap:4px}
   .hb-loc{order:1;max-width:none;flex:1}
   .hb-div{display:none}
-  .hb-when{order:2;flex:1 1 100%;border-radius:14px;border-top:1px solid var(--line)}
+  .hb-when{order:2;flex:1 1 100%;border-radius:var(--radius-md);border-top:1px solid var(--line)}
   .hb-go{order:3;flex:1 1 100%;margin-top:4px}
 }
 /* tightest three-across band: the sub-label would wrap onto two lines and only

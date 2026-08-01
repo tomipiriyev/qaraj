@@ -1,5 +1,5 @@
-/* Qaraj web app — «Поиск площади»: the Площадь filter page (#/filters/space).
-   Reached instead of the results grid when you search in the Площадь category.
+/* Qaraj web app — «Поиск площади»: the Площадь filter set.
+   Supplies sections + footer bar for the Фильтры modal — see filters.js.
 
    Площадь is let by the square metre, so this page is a sizing assistant first
    and a filter second: pick what you're storing → each item contributes its own
@@ -17,49 +17,6 @@
 
   let f = null;
 
-  /* ---------- URL <-> filter set ---------- */
-  function toQuery(v) {
-    const q = {}, d = D.spaceDefaults();
-    // only known categories: a session stored before the list changed may still
-    // carry ids that no longer exist, and they must not leak back into the URL
-    const items = D.storeItems.filter(i => v.items[i.id] > 0).map(i => i.id);
-    if (items.length) q.items = items.map(k => k + ":" + v.items[k]).join(",");
-    if (v.sizeTouched) q.size = v.sizeM2;
-    if (v.priceTouched) { q.min = v.priceMin; q.max = v.priceMax; }
-    if (v.features.length) q.feat = v.features.join(",");
-    if (v.radiusKm) q.km = v.radiusKm;
-    // move-in dates are the search bar's, not this page's — they stay out of the URL
-    if (v.nowOnly) q.now = "1";
-    if (v.sort !== d.sort) q.sort = v.sort;
-    return q;
-  }
-  function fromQuery(q) {
-    const v = D.spaceDefaults();
-    const num = (s, fb) => { const n = parseFloat(s); return isNaN(n) ? fb : n; };
-    (q.items || "").split(",").forEach(pair => {
-      const [id, n] = pair.split(":");
-      if (!D.storeItems.some(i => i.id === id)) return;
-      const qty = Math.max(1, Math.min(99, Math.round(num(n, 1))));
-      v.items[id] = qty;
-    });
-    if (q.size !== undefined) {
-      const s = S();
-      v.sizeM2 = Math.max(s.min, Math.min(s.max, Math.round(num(q.size, s.min) / s.step) * s.step));
-      v.sizeTouched = true;
-    }
-    if (q.min !== undefined || q.max !== undefined) {
-      v.priceTouched = true;
-      v.priceMin = num(q.min, 0);
-      v.priceMax = num(q.max, 0);
-      if (v.priceMin > v.priceMax) { const t = v.priceMin; v.priceMin = v.priceMax; v.priceMax = t; }
-    }
-    if (q.feat) v.features = q.feat.split(",").filter(x => D.spaceFeatures.some(g => g.id === x));
-    if (q.km !== undefined && D.radiusOptions.some(r => r.km === num(q.km, -1))) v.radiusKm = num(q.km, 0);
-    v.nowOnly = q.now === "1";
-    if (q.sort && D.spaceSortOptions.some(s => s.id === q.sort)) v.sort = q.sort;
-    return v;
-  }
-  function syncURL() { Q.router.setQuery(toQuery(f)); }
 
   /* ---------- Derived values ---------- */
   function size() { return D.spaceSize(f); }
@@ -182,41 +139,22 @@
     '</div></div>';
   }
 
-  /* ---------- The page ---------- */
+  /* ---------- Sections for the Фильтры modal ---------- */
   const section = (id, title, sub, body, extra) => K.section("sf", id, title, sub, body, extra);
 
-  function spaceFilters() {
-    f = fromQuery(Q.router.query());
-    if (!Object.keys(Q.router.query()).length) f = Object.assign(D.spaceDefaults(), Q.store.get().space);
+  function sections() {
+    f = Object.assign(D.spaceDefaults(), Q.store.get().space);
     if (!f.items) f.items = {};
     D.spaceFitPrice(f);
     readDates();
-
-    const place = Q.store.place();
-    const where = place.kind === "any" ? "" : ' · ' + esc(place.name);
-    return c.appbar("") +
-      '<main class="gf sf">' +
-        '<header class="gf-head">' +
-          '<button type="button" class="gf-back" data-action="sf-back" aria-label="Назад">' + ic("arrowL", 20, 2) + '</button>' +
-          '<div class="gf-head-tx"><h1>Что вы храните?</h1>' +
-            '<p>Отметьте вещи, которые планируете хранить, — мы рассчитаем нужную площадь' + where + '.</p></div>' +
-          '<button type="button" class="gf-info" data-action="sf-info" aria-label="Как считается площадь">' + ic("info", 20, 1.8) + '</button>' +
-        '</header>' +
-
-        // one centred column: the sections read top to bottom in the order you fill them
-        section("items", "Категории вещей", "Можно выбрать несколько — количество укажете ниже.", itemCards()) +
-        section("sel", "Выбранные вещи", "Меняйте количество — площадь пересчитается сразу.", selectedItems()) +
-        section("size", "Нужная площадь", "Рассчитано по выбранным вещам.", sizeBlock()) +
-        section("price", "Бюджет в месяц", "Стоимость аренды выбранной площади.", priceSlider()) +
-        section("feat", "Дополнительные фильтры", "Отметьте всё, что вам нужно.", featureChips()) +
-
-        section("avail", "Доступность", "Когда планируете заехать?", availability(), K.nowSwitch("sf", f.nowOnly)) +
-        section("dist", "Расстояние", "Радиус поиска от выбранного места.", radiusChips()) +
-        section("sort", "Сортировка", "Как показать результаты.", sortSelect()) +
-
-        '<div class="gf-foot-spacer"></div>' +
-      '</main>' +
-      footBar();
+    return section("items", "Категории вещей", "Можно выбрать несколько — количество укажете ниже.", itemCards()) +
+      section("sel", "Выбранные вещи", "Меняйте количество — площадь пересчитается сразу.", selectedItems()) +
+      section("size", "Нужная площадь", "Рассчитано по выбранным вещам.", sizeBlock()) +
+      section("price", "Бюджет в месяц", "Стоимость аренды выбранной площади.", priceSlider()) +
+      section("feat", "Дополнительные фильтры", "Отметьте всё, что вам нужно.", featureChips()) +
+      section("avail", "Доступность", "Когда планируете заехать?", availability(), K.nowSwitch("sf", f.nowOnly)) +
+      section("dist", "Расстояние", "Радиус поиска от выбранного места.", radiusChips()) +
+      section("sort", "Сортировка", "Как показать результаты.", sortSelect());
   }
 
   /* ---------- Repaints ---------- */
@@ -228,7 +166,7 @@
     repaint(".gf-price", priceSlider());
     afterChange();
   }
-  function afterChange() { syncURL(); repaintFoot(); }
+  function afterChange() { repaintFoot(); }
   function repaintItems() {
     repaint(".sf-items", itemCards());
     repaint("#sfSelected", selectedItems());
@@ -244,13 +182,6 @@
     const t = e.target.closest("[data-action]");
     if (!t || !f) return;
     switch (t.dataset.action) {
-      case "sf-back":
-        if (history.length > 1) history.back(); else Q.router.navigate("#/");
-        break;
-      case "sf-info":
-        Q.app.toast("Площадь считается как сумма по каждой вещи. Ползунок ниже позволяет задать её вручную.");
-        break;
-
       case "sf-item": {                       // toggle a category on/off
         const id = t.dataset.id;
         setQty(id, f.items[id] ? 0 : 1);
@@ -306,7 +237,7 @@
       }
       case "sf-apply":
         Q.store.set({ category: "ploshad", space: Object.assign({}, f), selectedId: null });
-        Q.router.navigate("#/search");
+        Q.app.applyFilters();
         break;
     }
   });
@@ -351,6 +282,5 @@
 
   function unmount() { f = null; }
 
-  Q.space = { spaceFilters, unmount, syncDates };
-  Q.views.spaceFilters = spaceFilters;
+  Q.space = { sections, footBar, unmount, syncDates };
 })(window.Q = window.Q || {});

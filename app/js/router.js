@@ -46,7 +46,20 @@
     const hit = match(p);
     if (!hit) return;
     const root = document.getElementById("app");
-    root.innerHTML = hit.view(hit.params) || "";
+    /* A view that is missing (a stale bundle can leave a route pointing at one
+       that no longer exists) or that throws would otherwise abort before the
+       assignment below, leaving the previous screen up — which reads as a
+       button that does nothing. Fall back to the not-found view and say so. */
+    let html;
+    try {
+      if (typeof hit.view !== "function") throw new Error("no view registered");
+      html = hit.view(hit.params) || "";
+    } catch (err) {
+      console.error("[router] " + p + " failed to render:", err);
+      if (typeof notFound !== "function" || hit.view === notFound) return;
+      try { html = notFound({}) || ""; } catch (e2) { return; }
+    }
+    root.innerHTML = html;
     window.scrollTo(0, 0);
     Q.app && Q.app.afterRender && Q.app.afterRender(p, hit.params);
   }

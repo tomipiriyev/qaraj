@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Filters — modal reference</title>
+<meta name="robots" content="noindex, nofollow">
+<!-- Airbnb Cereal is proprietary and does not resolve; Inter is the specified
+     fallback, so it is loaded here to make the fallback real rather than
+     silently landing on Helvetica. This page is standalone — it does not
+     affect the app, which runs on Manrope. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Filters modal — replica of the Airbnb reference.
+   Every value below comes from the spec; nothing is reinterpreted.
+   ============================================================ */
+:root{
+  --ink:#222222;        /* primary text   */
+  --ink-2:#6A6A6A;      /* secondary text */
+  --border:#DDDDDD;     /* control borders */
+  --divider:#EBEBEB;    /* hairlines      */
+  --pink:#FF385C;
+  --bg:#FFFFFF;
+  --pad:36px;           /* modal left/right padding */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"Airbnb Cereal",Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  color:var(--ink);
+  background:#f7f7f7;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+/* ---------- Overlay ---------- */
+.ov{
+  position:fixed;inset:0;background:rgba(0,0,0,.35);
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;z-index:100;
+}
+
+/* ---------- Modal shell ----------
+   Fixed 840×760 with the body as the only scroller, so the header and footer
+   stay put and the rounded corners never clip a scrollbar. */
+.modal{
+  width:840px;max-width:100%;
+  height:760px;max-height:100%;
+  background:var(--bg);
+  border-radius:32px;
+  box-shadow:0 8px 28px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
+  overflow:hidden;
+  display:flex;flex-direction:column;
+}
+
+/* ---------- Header ---------- */
+.mhead{
+  position:relative;flex:0 0 auto;height:72px;
+  display:flex;align-items:center;justify-content:center;
+  border-bottom:1px solid var(--divider);
+}
+.mhead h2{font-size:20px;font-weight:600;color:var(--ink);line-height:1}
+.mclose{
+  position:absolute;top:16px;right:16px;
+  width:40px;height:40px;border-radius:50%;
+  display:grid;place-items:center;color:var(--ink);
+  transition:background .15s ease;
+}
+.mclose svg{width:24px;height:24px;display:block}
+.mclose:hover{background:#F7F7F7}
+.mclose:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* ---------- Body ---------- */
+.mbody{flex:1 1 auto;overflow-y:auto;overscroll-behavior:contain}
+.fsec{padding:28px var(--pad)}
+.fsec + .fsec{border-top:1px solid var(--divider)}
+.fsec h3{font-size:22px;font-weight:600;color:var(--ink);line-height:1.25}
+.fsec > h3{margin-bottom:18px}
+
+/* ---------- 1. Recommended for you ---------- */
+.rec{display:flex;gap:16px}
+.rec-card{
+  width:178px;height:136px;flex:0 0 auto;
+  border:1px solid var(--border);border-radius:16px;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  padding:12px 8px;text-align:center;
+  transition:border-color .15s ease, box-shadow .15s ease;
+}
+.rec-emoji{font-size:52px;line-height:1;
+  font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.rec-label{font-size:18px;font-weight:500;color:var(--ink);line-height:1.2}
+.rec-card:hover{border-color:#B0B0B0;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.rec-card:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+/* Airbnb marks a chosen card with the same 2px black border the segmented
+   control uses; the reference shows all four unselected. */
+.rec-card[aria-pressed="true"]{border:2px solid var(--ink)}
+
+/* ---------- 2. Type of place ----------
+   72px container, 4 equal segments. The selected pill is inset 4px so it sits
+   inside the container rather than replacing its edge. */
+.seg{
+  display:flex;height:72px;
+  border:1px solid var(--border);border-radius:18px;background:var(--bg);
+  padding:4px;
+}
+.seg-btn{
+  position:relative;flex:1 1 0;
+  display:grid;place-items:center;
+  font-size:18px;font-weight:500;color:var(--ink);
+  /* transparent 2px border on every segment: with flex-basis:0 a border adds to
+     the outer width, so only bordering the selected one made it 4px wider */
+  border:2px solid transparent;
+  border-radius:16px;background:var(--bg);
+  transition:background .15s ease, border-color .15s ease;
+}
+/* hairline between two adjacent unselected segments only — the selected pill's
+   own border replaces the dividers on either side of it */
+.seg-btn + .seg-btn::before{
+  content:"";position:absolute;left:0;top:14px;bottom:14px;width:1px;background:var(--border);
+}
+.seg-btn[aria-checked="true"]::before,
+.seg-btn[aria-checked="true"] + .seg-btn::before{display:none}
+.seg-btn[aria-checked="true"]{
+  border-color:var(--ink);background:var(--bg);
+  box-shadow:0 1px 2px rgba(0,0,0,.08);
+}
+.seg-btn:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+
+/* ---------- 3. Price range ---------- */
+.sub{font-size:16px;font-weight:400;color:var(--ink-2);margin-top:-10px;margin-bottom:12px}
+.price{position:relative;padding-bottom:16px}
+/* bars sit on the baseline the slider rail runs along */
+.bars{display:flex;align-items:flex-end;gap:7px;height:64px}
+.bar{flex:1 1 0;background:var(--pink);border-radius:3px 3px 0 0;min-height:2px}
+
+/* Dual range: two stacked inputs, pointer-events only on the thumbs so both
+   handles stay grabbable and keyboard-operable. */
+.rail{position:relative;height:32px;margin-top:-16px}
+.rail-bg,.rail-on{position:absolute;top:15px;height:2px;border-radius:2px}
+.rail-bg{left:0;right:0;background:#DDDDDD}
+.rail-on{background:var(--pink)}
+.r{
+  position:absolute;left:-16px;right:-16px;top:0;width:calc(100% + 32px);height:32px;
+  margin:0;background:none;pointer-events:none;-webkit-appearance:none;appearance:none;
+}
+.r:focus{outline:none}
+.r::-webkit-slider-thumb{
+  -webkit-appearance:none;pointer-events:auto;
+  width:32px;height:32px;border-radius:50%;
+  background:#fff;border:1px solid var(--border);
+  box-shadow:0 1px 4px rgba(0,0,0,.18);cursor:grab;
+}
+.r::-webkit-slider-thumb:active{cursor:grabbing}
+.r::-moz-range-thumb{
+  pointer-events:auto;width:30px;height:30px;border-radius:50%;
+  background:#fff;border:1px solid var(--border);
+  box-shadow:0 1px 4px rgba(0,0,0,.18);cursor:grab;
+}
+.r:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px rgba(34,34,34,.35)}
+
+/* ---------- Footer ---------- */
+.mfoot{
+  flex:0 0 auto;height:92px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--pad);
+  border-top:1px solid var(--divider);background:var(--bg);
+}
+.clear{
+  font-size:18px;font-weight:500;color:var(--ink);
+  text-decoration:underline;text-underline-offset:3px;
+  padding:8px 4px;border-radius:8px;
+}
+.clear:hover{color:#000}
+.clear:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.apply{
+  height:56px;padding:0 32px;border-radius:16px;
+  background:#222222;color:#fff;font-size:18px;font-weight:600;
+  transition:background .15s ease;
+}
+.apply:hover{background:#3b3b3b}
+.apply:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+@media (max-width:900px){
+  .ov{padding:0}
+  .modal{width:100%;height:100%;border-radius:0}
+  :root{--pad:24px}
+  .rec{overflow-x:auto;scrollbar-width:none}
+  .rec::-webkit-scrollbar{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="ov">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ftitle">
+
+    <header class="mhead">
+      <h2 id="ftitle">Filters</h2>
+      <button class="mclose" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <path d="M6 6l12 12M18 6L6 18"/>
+        </svg>
+      </button>
+    </header>
+
+    <div class="mbody">
+
+      <section class="fsec">
+        <h3>Recommended for you</h3>
+        <div class="rec">
+          <button class="rec-card" aria-pressed="false"><span class="rec-emoji">🗓️</span><span class="rec-label">Free cancellation</span></button>
+          <button class="rec-card" aria-pressed="false"><span class="rec-emoji">🧺</span><span class="rec-label">Washer</span></button>
+          <button class="rec-card" aria-pressed="false"><span class="rec-emoji">🚽</span><span class="rec-label">1+ bathrooms</span></button>
+          <button class="rec-card" aria-pressed="false"><span class="rec-emoji">🔎</span><span class="rec-label">Self check-in</span></button>
+        </div>
+      </section>
+
+      <section class="fsec">
+        <h3>Type of place</h3>
+        <div class="seg" role="radiogroup" aria-label="Type of place">
+          <button class="seg-btn" role="radio" aria-checked="false">Any</button>
+          <button class="seg-btn" role="radio" aria-checked="true">Home</button>
+          <button class="seg-btn" role="radio" aria-checked="false">Room</button>
+          <button class="seg-btn" role="radio" aria-checked="false">Hotel</button>
+        </div>
+      </section>
+
+      <section class="fsec">
+        <h3>Price range</h3>
+        <p class="sub">Trip price, includes all fees</p>
+        <div class="price">
+          <div class="bars" id="bars" aria-hidden="true"></div>
+          <div class="rail">
+            <span class="rail-bg"></span>
+            <span class="rail-on" id="railOn"></span>
+            <input type="range" class="r" id="lo" min="0" max="100" value="0" aria-label="Minimum price">
+            <input type="range" class="r" id="hi" min="0" max="100" value="100" aria-label="Maximum price">
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <footer class="mfoot">
+      <button class="clear">Clear all</button>
+      <button class="apply">Show 1,000+ homes</button>
+    </footer>
+
+  </div>
+</div>
+
+<script>
+/* Histogram: 40 buckets shaped like the reference — a flat run on the left, a
+   climb to a peak just past the middle, a jittered tail, and the terminal
+   "and above" spike Airbnb puts at the top of the range. */
+var HEIGHTS = [0,0,0,0,0,0,0,0,0,1,3,2,6,10,8,15,19,17,26,34,30,42,52,48,64,80,100,86,
+               92,78,71,76,63,55,47,40,34,29,35,78];
+(function () {
+  var wrap = document.getElementById("bars");
+  wrap.innerHTML = HEIGHTS.map(function (h) {
+    return '<span class="bar" style="height:' + (h / 100 * 64).toFixed(1) + 'px"></span>';
+  }).join("");
+})();
+
+/* Dual range: handles cannot cross, and the pink segment tracks them. */
+(function () {
+  var lo = document.getElementById("lo"), hi = document.getElementById("hi"), on = document.getElementById("railOn");
+  function paint() {
+    on.style.left = lo.value + "%";
+    on.style.right = (100 - hi.value) + "%";
+  }
+  lo.addEventListener("input", function () {
+    if (+lo.value > +hi.value - 1) lo.value = +hi.value - 1;
+    paint();
+  });
+  hi.addEventListener("input", function () {
+    if (+hi.value < +lo.value + 1) hi.value = +lo.value + 1;
+    paint();
+  });
+  paint();
+})();
+
+/* Segmented control */
+document.querySelectorAll(".seg-btn").forEach(function (b) {
+  b.addEventListener("click", function () {
+    document.querySelectorAll(".seg-btn").forEach(function (o) { o.setAttribute("aria-checked", "false"); });
+    b.setAttribute("aria-checked", "true");
+  });
+});
+
+/* Recommendation cards toggle */
+document.querySelectorAll(".rec-card").forEach(function (c) {
+  c.addEventListener("click", function () {
+    c.setAttribute("aria-pressed", c.getAttribute("aria-pressed") === "true" ? "false" : "true");
+  });
+});
+</script>
+</body>
+</html>

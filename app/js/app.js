@@ -1,9 +1,6 @@
 /* Qaraj web app — bootstrap, routing table, global event delegation, modals. */
 (function (Q) {
   const D = Q.data;
-  const SIZE_STEPS = [0, 5, 10, 15, 20, 30, 50];
-  // categories whose search opens a dedicated filter page instead of the results
-  const FILTER_PAGE = { garage: "/filters/garage", ploshad: "/filters/space" };
   let draft = null;            // ephemeral modal state
   const modalRoot = () => document.getElementById("modal-root");
 
@@ -11,8 +8,6 @@
   Q.router.add("/signin", Q.views.signin);
   Q.router.add("/", Q.views.home);
   Q.router.add("/search", Q.views.results);
-  Q.router.add("/filters/garage", Q.views.garageFilters);
-  Q.router.add("/filters/space", Q.views.spaceFilters);
   Q.router.add("/map", Q.views.results);      // list + map are one page now
   Q.router.add("/space/:id", Q.views.detail);
   Q.router.add("/saved", Q.views.saved);
@@ -46,21 +41,10 @@
     ov.classList.remove("open");
     setTimeout(() => { modalRoot().innerHTML = ""; }, 180);
     draft = null;
+    // the filter modules own their working copy only while the sheet is up
+    Q.filters.unmount(); Q.space.unmount(); Q.sklad.unmount();
   }
 
-  function countDraft() {
-    return D.listings.filter(l => {
-      if (l.category !== draft.category) return false;
-      if (l.sizeM2 < draft.minM2) return false;
-      if (D.monthly(l) > draft.priceMax) return false;
-      if (draft.amenities.length && !draft.amenities.every(a => l.amenities.indexOf(a) !== -1)) return false;
-      return true;
-    }).length;
-  }
-  function refreshCount() {
-    const el = document.getElementById("fcount");
-    if (el) el.textContent = countDraft() + " " + placesWord(countDraft());
-  }
 
   /* ----- Search dropdown: anchored under the bar, re-rendered on every change ----- */
   function searchHost() { return document.querySelector(".searchpop-host"); }
@@ -111,6 +95,7 @@
     let n;
     if (cat === "garage") n = D.garageResults(s.garage, place).length;
     else if (cat === "ploshad") n = D.spaceResults(s.space, place).length;
+    else if (cat === "sklad") n = D.skladResults(s.sklad, place).length;
     else {
       const f = s.filters;
       n = D.listings.filter(l => l.category === cat && D.placeMatches(l, place) &&
@@ -126,12 +111,10 @@
     // the router replaces #app wholesale, taking any open search dropdown with it
     document.body.classList.remove("search-open");
     if (draft && draft.kind === "search") draft = null;
-    // the filter page keeps its own working state only while it is mounted
-    if (path !== "/filters/garage") Q.filters.unmount();
-    if (path !== "/filters/space") Q.space.unmount();
     if (path === "/") {
       const form = document.getElementById("homeSearch");
       if (form) form.addEventListener("submit", (e) => { e.preventDefault(); submitHome(); });
+      wireSubscribe();
     }
     if (path === "/signin") {
       const form = document.getElementById("signinForm");
@@ -144,6 +127,38 @@
       });
     }
     mountMap();
+  }
+
+  /* Called by a filter module's «Показать» once it has committed to the store:
+     close the sheet and repaint the results underneath it. */
+  function applyFilters() {
+    closeModal();
+    const path = Q.router.path();
+    if (path === "/search" || path === "/map") Q.router.resolve();
+    else Q.router.navigate("#/search");
+  }
+
+  /* ---------- Footer subscribe ----------
+     Posts to the same Formspree endpoint as the landing page and reports back
+     in the note under the field. Mirrors index.html's email-capture handler. */
+  function wireSubscribe() {
+    const form = document.getElementById("footSubForm");
+    const note = document.getElementById("footSubNote");
+    if (!form || !note) return;
+    const email = document.getElementById("footSubEmail");
+    const set = (msg, cls) => { note.className = "fs-note" + (cls ? " " + cls : ""); note.textContent = msg; };
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const val = (email.value || "").trim();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val)) { set("Введите корректный email.", "err"); email.focus(); return; }
+      set("Отправляем…", "");
+      fetch(form.getAttribute("action"), { method: "POST", body: new FormData(form), headers: { Accept: "application/json" } })
+        .then(r => {
+          if (r.ok) { set("Спасибо! Вы подписаны. ✅", "ok"); form.reset(); }
+          else set("Не удалось отправить. Попробуйте ещё раз.", "err");
+        })
+        .catch(() => set("Ошибка сети. Попробуйте позже.", "err"));
+    });
   }
 
   /* ---------- Map: drag to pan, wheel or buttons to zoom ----------
@@ -220,7 +235,6 @@
   function titleFor(path) {
     const map = { "/signin": "Вход — Qaraj", "/": "Qaraj — аренда места для хранения",
                   "/search": "Поиск — Qaraj", "/map": "Карта — Qaraj",
-                  "/filters/garage": "Поиск гаража — Qaraj", "/filters/space": "Поиск площади — Qaraj",
                   "/saved": "Избранное — Qaraj", "/trips": "Заявки — Qaraj", "/profile": "Профиль — Qaraj" };
     if (path.indexOf("/space/") === 0) { const l = D.listings.find(x => x.id === path.split("/")[2]); return (l ? l.title : "Объявление") + " — Qaraj"; }
     return map[path] || "Qaraj";
@@ -235,7 +249,7 @@
     Q.store.set({ query: Object.assign({}, Q.store.get().query,
                                        { dateISO: from, dateEndISO: to }), selectedId: null });
     // a filter page open behind the dropdown mirrors these dates — keep it in step
-    Q.filters.syncDates(); Q.space.syncDates();
+    Q.filters.syncDates(); Q.space.syncDates(); Q.sklad.syncDates();
     const btn = document.querySelector(".hb-when");
     if (!btn) return;
     btn.classList.toggle("filled", !!from);
@@ -243,13 +257,14 @@
     if (lbl) lbl.textContent = Q.c.whenLabel(Q.store.get().query) || "Когда";
   }
 
-  /* The hero search: place and dates are already committed, so just follow the
-     bar's routing — Гараж/Площадь get their filter page, Склад the results. */
+  /* The hero search: place and dates are already committed, so this just goes to
+     the results. Every category's filters default to "no limit", so the first
+     screen is the full list for the category and the filter page is a step the
+     user takes when they want it (via Фильтры), not a toll gate before results. */
   function submitHome() {
     // no free-text field on the bar any more; drop a query left by an older session
     Q.store.set({ query: Object.assign({}, Q.store.get().query, { q: "" }), selectedId: null });
-    const step = FILTER_PAGE[Q.store.get().category];
-    Q.router.navigate(step ? "#" + step : "#/search");
+    Q.router.navigate("#/search");
   }
 
   /* ---------- Global click delegation ---------- */
@@ -290,12 +305,14 @@
         const s = Q.store.get(), id = t.dataset.id, scope = t.dataset.scope;
         const set = scope === "garage" ? Object.assign({}, s.garage, { features: s.garage.features.slice() })
                   : scope === "space"  ? Object.assign({}, s.space,  { features: s.space.features.slice() })
+                  : scope === "sklad"  ? Object.assign({}, s.sklad,  { features: s.sklad.features.slice() })
                   :                      Object.assign({}, s.filters, { amenities: s.filters.amenities.slice() });
         const arr = scope === "amen" ? set.amenities : set.features;
         const i = arr.indexOf(id);
         if (i === -1) arr.push(id); else arr.splice(i, 1);
         Q.store.set(scope === "garage" ? { garage: set, selectedId: null }
                   : scope === "space"  ? { space: set, selectedId: null }
+                  : scope === "sklad"  ? { sklad: set, selectedId: null }
                   :                      { filters: set, selectedId: null });
         Q.router.resolve();
         break;
@@ -398,6 +415,14 @@
         renderSearch();
         break;
       case "search-apply": {
+        // The collapsed pill's magnifier is the only submit there is — the
+        // dropdown has no button of its own. With the dropdown shut there is
+        // nothing to commit, so a click would silently re-render the same
+        // results and read as a dead button; open the panel instead.
+        if (!searchOpen()) {
+          const seg = document.querySelector('.searchpill [data-panel="where"], .home-bar [data-panel="where"]');
+          if (seg) { seg.click(); break; }
+        }
         if (draft && draft.kind === "search") {
           // the bar only owns place + category; dates and Срок are set elsewhere
           // (the per-category filter pages and the inquiry form) — carry them through
@@ -406,63 +431,20 @@
                         selectedId: null });
         }
         closeSearch();
-        // Гараж and Площадь each get their own filter step before the results
-        const step = FILTER_PAGE[Q.store.get().category];
-        if (step) {
-          // already there: re-resolve so the hash (and its filter query) survives
-          if (Q.router.path() === step) Q.router.resolve();
-          else Q.router.navigate("#" + step);
-          break;
-        }
-        if (Q.router.path() !== "/search" && Q.router.path() !== "/map") Q.router.navigate("#/search");
-        else Q.router.resolve();
+        const here = Q.router.path();
+        if (here === "/search" || here === "/map") Q.router.resolve();
+        else Q.router.navigate("#/search");
         break;
       }
 
       /* ----- Filter modal ----- */
-      case "open-filters": {
-        // these categories have a dedicated filter page rather than the generic modal
-        const page = FILTER_PAGE[Q.store.get().category];
-        if (page) { Q.router.navigate("#" + page); break; }
-        const f = Q.store.get().filters;
-        draft = { kind: "filter", category: Q.store.get().category, minM2: f.minM2, priceMax: f.priceMax, amenities: f.amenities.slice() };
-        openModal(Q.c.filterModal()); refreshCount();
-        break;
-      }
-      case "fcat":
-        draft.category = t.dataset.cat;
-        t.parentNode.querySelectorAll("button").forEach(b => b.classList.toggle("active", b === t));
-        refreshCount();
-        break;
-      case "sqm": {
-        let idx = SIZE_STEPS.indexOf(draft.minM2); if (idx < 0) idx = 0;
-        idx = Math.max(0, Math.min(SIZE_STEPS.length - 1, idx + parseInt(t.dataset.d, 10)));
-        draft.minM2 = SIZE_STEPS[idx];
-        document.getElementById("sqmVal").textContent = draft.minM2 === 0 ? "Любая" : draft.minM2 + " м²";
-        refreshCount();
-        break;
-      }
-      case "amen": {
-        const id = t.dataset.id, i = draft.amenities.indexOf(id);
-        if (i === -1) draft.amenities.push(id); else draft.amenities.splice(i, 1);
-        t.classList.toggle("on"); refreshCount();
-        break;
-      }
-      case "filter-reset":
-        draft = { kind: "filter", category: draft.category, minM2: 0, priceMax: 30000, amenities: [] };
-        openModal(Q.c.filterModal()); refreshCount();
+      case "open-filters":
+        openModal(Q.c.filterModal());
         break;
       case "filter-reset-all":
-        Q.store.set({ filters: { minM2: 0, priceMax: 30000, amenities: [] },
-                      garage: D.garageDefaults(),   // the filter pages have their own sets
-                      space: D.spaceDefaults(),
+        Q.store.set({ garage: D.garageDefaults(), space: D.spaceDefaults(), sklad: D.skladDefaults(),
                       query: Object.assign({}, Q.store.get().query, { place: null }) });
         Q.router.resolve();
-        break;
-      case "filter-apply":
-        Q.store.set({ category: draft.category, selectedId: null,
-          filters: { minM2: draft.minM2, priceMax: draft.priceMax, amenities: draft.amenities.slice() } });
-        closeModal(); Q.router.resolve();
         break;
 
       /* ----- Inquiry modal ----- */
@@ -538,21 +520,10 @@
     if (first) first.click();
   });
 
-  /* range slider (price max) — 'input' event, not click */
-  document.addEventListener("input", (e) => {
-    const t = e.target;
-    if (t.dataset && t.dataset.action === "pmax" && draft) {
-      draft.priceMax = parseInt(t.value, 10);
-      const lbl = document.getElementById("pmaxVal");
-      if (lbl) lbl.textContent = draft.priceMax >= 30000 ? "30 000+ ₽" : D.fmt(draft.priceMax) + " ₽";
-      refreshCount();
-    }
-  });
-
   /* Escape closes whichever overlay is up */
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeSearch(); closeModal(); } });
 
-  Q.app = { afterRender, toast };
+  Q.app = { afterRender, toast, applyFilters };
 
   /* ---------- Boot ---------- */
   // Optional deep-link: /app/?demo=1 signs in the demo guest and skips the gate.

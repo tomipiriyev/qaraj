@@ -354,7 +354,7 @@
             '<div style="display:flex;align-items:center;gap:10px;color:var(--hb)">' + ic("coins", 22, 1.7) +
               '<b style="font-size:15px;color:var(--hink)">Рекомендуемая цена</b></div>' +
             '<div style="font-size:26px;font-weight:700">' + fmt(rec[0]) + ' – ' + fmt(rec[1]) + ' ' + currency() + '</div>' +
-            '<p style="color:var(--hsoft);font-size:13.5px">' +
+            '<p style="color:var(--hsoft);font-size:14px">' +
               (perSpace ? "За всё помещение в месяц" : "За 1 м² в месяц") +
               ' · рассчитано по похожим объявлениям' + (spaceMeta() ? " («" + spaceMeta().t.toLowerCase() + "»)" : "") + '.</p>' +
           '</div>' +

@@ -666,6 +666,149 @@
     return n;
   }
 
+  /* ---------- Склад search (the "Поиск склада" filter page) ----------
+     Склад is a whole closed space let per space, so it filters the way the
+     garage does — a kind, a heating type, a budget — rather than through the
+     m² assistant Площадь uses. The one axis it adds is size: unlike a garage
+     (sized by the car that fits) a склад is shopped for by its floor area, so
+     that is a range of its own rather than a derived number. */
+  const skladTypes = [
+    { id: "pantry",   label: "Кладовая",   sub: "До 10 м²",        icon: "door" },
+    { id: "basement", label: "Подвал",     sub: "Цокольный этаж",  icon: "stairs" },
+    { id: "box",      label: "Бокс",       sub: "Секция на складе", icon: "box" },
+    { id: "hall",     label: "Помещение",  sub: "От 20 м²",        icon: "garage" },
+  ];
+  const heatingTypes = [
+    { id: "heated",   label: "Тёплый",        desc: "Отопление круглый год",   icon: "sun" },
+    { id: "unheated", label: "Без отопления", desc: "Сухой, но неотапливаемый", icon: "snow" },
+  ];
+  const skladFeatures = [
+    { id: "climate",   label: "Климат-контроль",    icon: "snow" },
+    { id: "cctv",      label: "Видеонаблюдение",    icon: "cam" },
+    { id: "guard",     label: "Охрана",             icon: "shield" },
+    { id: "access24",  label: "Доступ 24/7",        icon: "clock" },
+    { id: "light",     label: "Освещение",          icon: "bulb" },
+    { id: "dry",       label: "Сухое хранение",     icon: "dry" },
+    { id: "shelves",   label: "Стеллажи",           icon: "shelf" },
+    { id: "socket",    label: "Розетка 220 В",      icon: "plug" },
+    { id: "dock",      label: "Погрузочная рампа",  icon: "truck" },
+    { id: "ground",    label: "Первый этаж",        icon: "stairs" },
+    { id: "lift",      label: "Грузовой лифт",      icon: "lift" },
+    { id: "separate",  label: "Отдельный вход",     icon: "door" },
+    { id: "insurance", label: "Страховка включена", icon: "doc" },
+  ];
+  // rounded outward from the real склад prices (3 600 – 19 800 ₽) and areas (4 – 30 м²)
+  const SKLAD_PRICE = { min: 3000, max: 20000, step: 500 };
+  const SKLAD_SIZE  = { min: 4, max: 30, step: 1 };
+
+  // [type, heating, features, km from centre, days since listed, free-from offset in days]
+  const SKLAD_META = {
+    "sk-1":  ["basement", "heated",   ["climate","cctv","access24","dry","light","shelves"], 1.6, 40, 0],
+    "sk-2":  ["basement", "heated",   ["cctv","access24","socket","separate","dry","light"], 2.1, 18, 0],
+    "sk-3":  ["box",      "heated",   ["climate","cctv","access24","socket","dry","light","ground"], 0.8, 9, 21],
+    "sk-4":  ["pantry",   "heated",   ["climate","access24","dry","light"], 3.4, 26, 0],
+    "sk-5":  ["hall",     "heated",   ["climate","cctv","access24","guard","dry","light","separate"], 4.2, 12, 0],
+    "sk-6":  ["hall",     "unheated", ["cctv","access24","dock","ground","light","shelves","guard"], 8.6, 7, 14],
+    "sk-7":  ["pantry",   "heated",   ["climate","access24","dry","light"], 2.7, 44, 0],
+    "sk-8":  ["box",      "heated",   ["climate","cctv","access24","socket","dry","light","shelves","lift"], 3.9, 11, 0],
+    "sk-9":  ["box",      "unheated", ["cctv","access24","dry","light","ground","shelves"], 1.9, 31, 0],
+    "sk-10": ["pantry",   "heated",   ["access24","dry","light"], 5.1, 22, 0],
+    "sk-11": ["hall",     "unheated", ["cctv","access24","dock","guard","shelves","ground"], 12.4, 33, 30],
+    "sk-12": ["box",      "heated",   ["climate","cctv","access24","dry","light","lift","separate"], 1.2, 6, 0],
+    "sk-13": ["basement", "unheated", ["cctv","access24","dry","shelves"], 6.3, 48, 0],
+    "sk-14": ["hall",     "unheated", ["cctv","access24","dock","guard","ground","light","shelves","insurance"], 10.8, 14, 45],
+    "sk-15": ["pantry",   "heated",   ["climate","access24","dry","light","shelves"], 3.1, 29, 0],
+    "sk-16": ["box",      "heated",   ["cctv","access24","socket","dry","light","ground"], 9.2, 20, 0],
+    "sk-17": ["pantry",   "heated",   ["climate","cctv","access24","dry","light"], 7.4, 16, 0],
+    "sk-18": ["box",      "unheated", ["cctv","access24","dry","shelves","ground","guard"], 7.8, 38, 0],
+    "sk-19": ["pantry",   "unheated", ["access24","dry","light"], 4.6, 52, 0],
+    "sk-20": ["box",      "heated",   ["climate","cctv","access24","socket","dry","light"], 11.5, 25, 0],
+    "sk-21": ["hall",     "heated",   ["climate","cctv","access24","dock","lift","light","shelves","insurance"], 2.4, 4, 7],
+    "sk-22": ["pantry",   "heated",   ["climate","cctv","access24","dry","light","separate"], 1.5, 13, 0],
+    "sk-23": ["basement", "unheated", ["cctv","access24","dry","light","shelves"], 3.8, 41, 0],
+    "sk-24": ["hall",     "unheated", ["cctv","access24","dock","ground","guard","shelves"], 13.1, 35, 0],
+    "sk-25": ["basement", "heated",   ["climate","cctv","access24","dry","light","socket"], 6.7, 5, 0],
+  };
+  listings.forEach(l => {
+    const m = SKLAD_META[l.id];
+    if (!m || l.category !== "sklad") return;
+    l.skladType = m[0]; l.heating = m[1]; l.features = m[2];
+    l.distanceKm = m[3]; l.addedDaysAgo = m[4];
+    l.freeFromISO = toISO(new Date(today().getTime() + m[5] * 86400000));
+  });
+
+  function skladDefaults() {
+    return { type: null, heating: null,
+             sizeMin: SKLAD_SIZE.min, sizeMax: SKLAD_SIZE.max,
+             priceMin: SKLAD_PRICE.min, priceMax: SKLAD_PRICE.max,
+             features: [], radiusKm: 0, fromISO: null, toISO: null, nowOnly: false, sort: "rec" };
+  }
+  function skladActiveCount(f) {
+    if (!f) return 0;
+    const d = skladDefaults();
+    let n = f.features.length;
+    if (f.type) n++;
+    if (f.heating) n++;
+    if (f.sizeMin !== d.sizeMin || f.sizeMax !== d.sizeMax) n++;
+    if (f.priceMin !== d.priceMin || f.priceMax !== d.priceMax) n++;
+    if (f.radiusKm) n++;
+    if (f.nowOnly) n++;
+    // dates belong to the search bar, so they are not one of this page's filters
+    if (f.sort !== d.sort) n++;
+    return n;
+  }
+  function skladMatches(l, f) {
+    if (l.category !== "sklad") return false;
+    if (f.type && l.skladType !== f.type) return false;
+    if (f.heating && l.heating !== f.heating) return false;
+    if (l.sizeM2 < f.sizeMin) return false;
+    // the top of each slider means "and above", so don't cap there
+    if (f.sizeMax < SKLAD_SIZE.max && l.sizeM2 > f.sizeMax) return false;
+    if (l.price < f.priceMin) return false;
+    if (f.priceMax < SKLAD_PRICE.max && l.price > f.priceMax) return false;
+    if (f.radiusKm && l.distanceKm > f.radiusKm) return false;
+    if (f.features.length && !f.features.every(x => l.features.indexOf(x) !== -1)) return false;
+    if (f.nowOnly && !l.availableNow) return false;
+    // a move-in date only works if the space is free by then
+    if (f.fromISO && l.freeFromISO > f.fromISO) return false;
+    return true;
+  }
+  function skladResults(f, place) {
+    const out = listings.filter(l => skladMatches(l, f) && placeMatches(l, place));
+    const by = {
+      cheap:  (a, b) => a.price - b.price,
+      pricey: (a, b) => b.price - a.price,
+      near:   (a, b) => a.distanceKm - b.distanceKm,
+      big:    (a, b) => b.sizeM2 - a.sizeM2,
+      rated:  (a, b) => b.rating - a.rating || b.reviews - a.reviews,
+      new:    (a, b) => a.addedDaysAgo - b.addedDaysAgo,
+      rec:    (a, b) => (b.verified - a.verified) || (b.rating * Math.log10(b.reviews + 10) - a.rating * Math.log10(a.reviews + 10)),
+    };
+    return out.sort(by[f.sort] || by.rec);
+  }
+  /* Price histogram behind the slider — one bar per bucket of the domain. */
+  function skladHistogram(buckets) {
+    const n = buckets || 24, span = (SKLAD_PRICE.max - SKLAD_PRICE.min) / n;
+    const bars = new Array(n).fill(0);
+    listings.forEach(l => {
+      if (l.category !== "sklad") return;
+      const i = Math.min(n - 1, Math.max(0, Math.floor((l.price - SKLAD_PRICE.min) / span)));
+      bars[i]++;
+    });
+    return bars;
+  }
+  /* Same shape as the price histogram, but bucketed by floor area. */
+  function skladSizeHistogram(buckets) {
+    const n = buckets || 24, span = (SKLAD_SIZE.max - SKLAD_SIZE.min) / n;
+    const bars = new Array(n).fill(0);
+    listings.forEach(l => {
+      if (l.category !== "sklad") return;
+      const i = Math.min(n - 1, Math.max(0, Math.floor((l.sizeM2 - SKLAD_SIZE.min) / span)));
+      bars[i]++;
+    });
+    return bars;
+  }
+
   /* How many filters are set — drives the badges on the reset/Фильтры buttons. */
   function garageActiveCount(f) {
     if (!f) return 0;
@@ -865,6 +1008,9 @@
              spaceDefaults, spaceRecommended, spaceSize, spaceMonthly, spaceMatches,
              spacePriceDomain, spaceWindow, spaceFitPrice, spaceResults, spaceHistogram,
              spaceEstimate, spaceActiveCount,
+             skladTypes, heatingTypes, skladFeatures, SKLAD_PRICE, SKLAD_SIZE,
+             skladDefaults, skladMatches, skladResults, skladHistogram, skladSizeHistogram,
+             skladActiveCount,
              places, topPlaces, matchPlaces, placeMatches, textMatches, ANY_PLACE,
              MONTHS_NOM, MONTHS_GEN, MONTHS_ABR, DOW, today, toISO, fromISO, isISO,
              dateShort, dateLong, dateRange, nights,

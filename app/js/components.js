@@ -54,6 +54,7 @@
     sliders:'<path d="M4 7h11M19 7h1M4 17h1M9 17h11"/><circle cx="17" cy="7" r="2.3"/><circle cx="7" cy="17" r="2.3"/>',
     info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.8v.01"/>',
     arrowL:'<path d="M20 12H4M10 6l-6 6 6 6"/>',
+    arrowR:'<path d="M4 12h16M14 6l6 6-6 6"/>',
     sort:'<path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/>',
     rotate:'<path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3.5 4.5V10h5.5"/>',
     /* space search */
@@ -145,13 +146,40 @@
   function catFilterCount(s) {
     if (s.category === "garage") return D.garageActiveCount(s.garage);
     if (s.category === "ploshad") return D.spaceActiveCount(s.space);
+    if (s.category === "sklad") return D.skladActiveCount(s.sklad);
     const f = s.filters;
     return f.amenities.length + (f.minM2 ? 1 : 0) + (f.priceMax < 30000 ? 1 : 0);
   }
+  /* ---------- Refine prompt ----------
+     Гараж and Площадь each have a filter page that used to sit between the
+     search and the results. It is optional now, so the results have to offer
+     it: this is the only place those two categories' real filters (габариты,
+     вещи → м², радиус, сортировка) are advertised. Shown only while nothing
+     has been set — once the user has filtered, the Фильтры badge says so. */
+  const REFINE = {
+    garage: { icon: "car", title: "Подобрать гараж по вашему авто",
+              sub: "Габариты, тип парковки, оснащение и радиус поиска.", cta: "Подобрать" },
+    ploshad: { icon: "ruler", title: "Не знаете, сколько м² нужно?",
+               sub: "Отметьте, что храните, — рассчитаем площадь и подберём места.", cta: "Рассчитать" },
+    sklad: { icon: "box", title: "Подобрать склад под ваши вещи",
+             sub: "Тип помещения, отопление, площадь, бюджет и оснащение.", cta: "Подобрать" },
+  };
+  function refinePrompt(s) {
+    const r = REFINE[s.category];
+    // nothing to advertise once the user has actually filtered
+    if (!r || catFilterCount(s)) return "";
+    return '<button class="refine" data-action="open-filters">' +
+      '<span class="rf-ic">' + ic(r.icon, 22, 1.7) + '</span>' +
+      '<span class="rf-tx"><b>' + r.title + '</b><small>' + r.sub + '</small></span>' +
+      '<span class="rf-cta">' + r.cta + ic("arrowR", 16, 2.2) + '</span>' +
+    '</button>';
+  }
+
   /* {items, on, scope} — where a category's quick filters live in the store */
   function quickSet(s) {
     if (s.category === "garage") return { items: D.garageFeatures, on: s.garage.features, scope: "garage" };
     if (s.category === "ploshad") return { items: D.spaceFeatures, on: s.space.features, scope: "space" };
+    if (s.category === "sklad") return { items: D.skladFeatures, on: s.sklad.features, scope: "sklad" };
     return { items: D.amenities, on: s.filters.amenities, scope: "amen" };
   }
   function filterRow(s) {
@@ -313,29 +341,29 @@
   }
 
   /* ---------- Filter modal ---------- */
+  /* ---------- Фильтры modal ----------
+     The Airbnb filter-modal layout (centred sheet, sticky header, sectioned
+     scroll body, sticky action footer), carrying whichever category's filter
+     set is active. The sections and the footer bar come from the per-category
+     modules, so the modal is only the shell — see filters.js / space.js /
+     sklad.js. Their existing repaint selectors resolve inside it unchanged. */
+  const FILTER_MOD = { garage: () => Q.filters, ploshad: () => Q.space, sklad: () => Q.sklad };
+  function filterModule() {
+    const m = FILTER_MOD[Q.store.get().category];
+    return m ? m() : null;
+  }
   function filterModal() {
-    const s = Q.store.get(), f = s.filters;
-    const hb = [3,4,6,9,13,17,20,22,21,19,20,18,16,14,12,11,9,8,7,6,5,4,4,3,3,2,2,3,2,2];
-    const bars = hb.map((h, i) => '<span class="bar' + (i < 2 || i > 26 ? " off" : "") + '" style="height:' + (h / 22 * 100) + '%"></span>').join("");
-    const sizes = ["Любая","5 м²","10 м²","15 м²","20 м²","30 м²","50 м²"];
-    const sizeVal = f.minM2 === 0 ? "Любая" : f.minM2 + " м²";
-    return modalShell("Фильтры",
-      '<div class="fsec"><h3>Категория</h3><div class="catseg" data-group="fcat">' +
-        D.categories.map(c => '<button class="' + (c.id === s.category ? "active" : "") + '" data-action="fcat" data-cat="' + c.id + '">' + ic(catIcon[c.id], 18, 1.7) + c.label + '</button>').join("") +
-      '</div></div>' +
-      '<div class="fsec"><h3>Размер, м²</h3><div class="stepper"><span>Минимальная площадь</span>' +
-        '<span class="ctrl"><button class="rnd" data-action="sqm" data-d="-1">−</button><span class="val" id="sqmVal">' + sizeVal + '</span><button class="rnd" data-action="sqm" data-d="1">+</button></span></div></div>' +
-      '<div class="fsec"><h3>Цена, ₽</h3><div class="sec-label" style="margin:0 0 6px">Аренда в месяц, включая все сборы</div>' +
-        '<div class="hist">' + bars + '</div>' +
-        '<div class="price-io"><div class="box"><small>Минимум</small><b>5 000 ₽</b></div>' +
-        '<div class="box"><small>Максимум</small><b id="pmaxVal">' + (f.priceMax >= 30000 ? "30 000+ ₽" : D.fmt(f.priceMax) + " ₽") + '</b></div></div>' +
-        '<input type="range" min="5000" max="30000" step="1000" value="' + f.priceMax + '" data-action="pmax" style="width:100%;margin-top:14px;accent-color:var(--brand)"></div>' +
-      '<div class="fsec"><h3>Удобства</h3><div class="amenities">' +
-        D.amenities.map(a => '<button class="amchip' + (f.amenities.indexOf(a.id) !== -1 ? " on" : "") + '" data-action="amen" data-id="' + a.id + '">' + ic(amIcon[a.id], 16, 1.8) + a.label + '</button>').join("") +
-      '</div></div>',
-      '<button class="linkbtn" data-action="filter-reset">Сбросить</button>' +
-      '<button class="btn btn-primary" data-action="filter-apply">Показать <span id="fcount"></span></button>'
-    );
+    const mod = filterModule();
+    if (!mod) return "";
+    return '<div class="fmodal" role="dialog" aria-modal="true" aria-labelledby="fmTitle">' +
+      '<header class="fm-head">' +
+        '<h2 id="fmTitle">Фильтры</h2>' +
+        '<button type="button" class="fm-close" data-action="close-modal" aria-label="Закрыть">' +
+          ic("x", 16, 2.2) + '</button>' +
+      '</header>' +
+      '<div class="fm-body">' + mod.sections() + '</div>' +
+      mod.footBar() +
+    '</div>';
   }
 
   /* ---------- Search sheet ----------
@@ -394,7 +422,7 @@
       '<div class="fsec" style="border-bottom:0">' +
         '<div style="display:flex;gap:14px;align-items:center;margin-bottom:8px">' +
           '<img src="' + l.photos[0] + '" style="width:84px;height:64px;border-radius:12px;object-fit:cover" alt="">' +
-          '<div><div style="font-weight:700">' + esc(l.title) + '</div><div style="color:var(--ink-soft);font-size:13.5px">' + esc(l.district) + ' · ' + l.sizeM2 + ' м²</div>' +
+          '<div><div style="font-weight:700">' + esc(l.title) + '</div><div style="color:var(--ink-soft);font-size:14px">' + esc(l.district) + ' · ' + l.sizeM2 + ' м²</div>' +
           '<div style="font-weight:700;margin-top:2px">' + p.main + ' <small style="font-weight:600;color:var(--ink-soft)">' + p.unit + '</small></div></div>' +
         '</div>' +
         '<h3 style="margin-top:16px">Когда заселяетесь?</h3>' + calBlock(d.calYear, d.calMonth, d.dateISO, null, 1) +
@@ -424,8 +452,98 @@
       '<a href="' + i[0] + '" data-link class="' + (active === i[1] ? "active" : "") + '">' + ic(i[2], 22, 1.8) + '<span>' + i[3] + '</span></a>').join("") + '</nav>';
   }
 
+  /* ---------- Site footer ----------
+     Laid out to the Airbnb footer spec: three equal link columns, a hairline
+     rule, then a bottom bar with the legal row left and locale + socials right.
+     The copy is Qaraj's own — the app lives at /app/, so links out to the
+     marketing site are relative ("../…") and anything with an in-app
+     equivalent points at the route instead (Разместить место → #/host). */
+  const FOOT_COLS = [
+    ["Арендаторам", [
+      ["../arenda-garazha-moskva/", "Аренда гаража в Москве"],
+      ["../arenda-kladovki-moskva/", "Аренда кладовки в Москве"],
+      ["../hranenie-veshchey-moskva/", "Хранение вещей в Москве"],
+      ["../skolko-stoit-arenda-garazha/", "Сколько стоит аренда гаража"],
+      ["#/search", "Найти место"],
+      ["#/saved", "Избранное"],
+    ]],
+    ["Хозяевам", [
+      ["../sdat-garazh-v-arendu/", "Сдать гараж в аренду"],
+      ["../skolko-stoit-arenda-garazha/", "Сколько можно заработать"],
+      ["../dogovor-arendy-garazha/", "Договор аренды гаража"],
+      ["#/host", "Разместить место"],
+    ]],
+    ["Qaraj", [
+      ["../#how", "Как это работает"],
+      ["../#faq", "Вопросы и ответы"],
+      ["../#why", "Защита"],
+      ["../", "На сайт Qaraj"],
+    ]],
+  ];
+  const FOOT_LEGAL = ["© 2026 Qaraj", "Конфиденциальность", "Условия", "Cookies"];
+  // filled paths, unlike the stroked set in ic()
+  const SOCIALS = [
+    ["X", '<path d="M17.5 3h3.1l-6.8 7.8L21.8 21h-6.2l-4.9-6.4L5 21H1.9l7.3-8.3L1.5 3h6.4l4.4 5.8L17.5 3Zm-1.1 16.1h1.7L6.7 4.8H4.9l11.5 14.3Z"/>'],
+    ["Instagram", '<rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1.3"/>'],
+    ["LinkedIn", '<path d="M4.98 3.5A2.5 2.5 0 1 0 5 8.5a2.5 2.5 0 0 0 0-5ZM3 9h4v12H3zM9 9h3.8v1.7h.1c.5-1 1.8-2 3.7-2 4 0 4.7 2.6 4.7 6V21h-4v-5.3c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9V21H9z"/>'],
+  ];
+  // in-app routes keep the router's data-link hook; site links are plain hrefs
+  const footLink = (href, label) =>
+    '<li><a href="' + href + '"' + (href.charAt(0) === "#" ? " data-link" : "") + '>' + esc(label) + '</a></li>';
+
+  /* The landing's subscribe section, folded in above the columns. Same Formspree
+     endpoint; _source marks the app so its sign-ups are told apart from the
+     landing's. Not part of the Airbnb reference — see the note in app.css. */
+  function footSub() {
+    return '<div class="foot-sub">' +
+      '<div class="fs-copy">' +
+        '<h2>Новые места — первыми</h2>' +
+        '<p>Свежие предложения хранения в вашем городе, советы и акции.</p>' +
+      '</div>' +
+      '<div class="fs-formwrap">' +
+        '<form class="fs-form" id="footSubForm" action="https://formspree.io/f/mojownrq" method="POST" novalidate>' +
+          '<input type="hidden" name="_source" value="subscribe-app-footer">' +
+          '<input type="email" name="email" id="footSubEmail" placeholder="Ваш email" required autocomplete="email" aria-label="Email">' +
+          '<button type="submit" class="fs-btn">Подписаться</button>' +
+        '</form>' +
+        '<p class="fs-note" id="footSubNote">Без спама. Отписаться можно в любой момент.</p>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function sitefoot() {
+    return '<footer class="sitefoot">' +
+      '<div class="foot-wrap">' +
+        footSub() +
+        '<div class="foot-cols">' +
+          FOOT_COLS.map((col, i) => {
+            const id = "footcol" + i;
+            return '<nav class="foot-col" aria-labelledby="' + id + '">' +
+              '<h2 class="foot-h" id="' + id + '">' + esc(col[0]) + '</h2>' +
+              '<ul>' + col[1].map(l => footLink(l[0], l[1])).join("") + '</ul>' +
+            '</nav>';
+          }).join("") +
+        '</div>' +
+        '<div class="foot-rule"></div>' +
+        '<div class="foot-bottom">' +
+          '<ul class="foot-legal">' + FOOT_LEGAL.map((x, i) =>
+            '<li>' + (i ? '<a href="#" data-action="noop">' + esc(x) + '</a>' : esc(x)) + '</li>').join("") + '</ul>' +
+          '<div class="foot-prefs">' +
+            '<button type="button" class="foot-pref" data-action="noop">' + ic("globe", 16, 1.9) + 'Русский</button>' +
+            '<button type="button" class="foot-pref" data-action="noop"><span class="foot-cur">₽</span>RUB</button>' +
+            '<ul class="foot-social">' + SOCIALS.map(s =>
+              '<li><a href="#" aria-label="' + s[0] + '" data-action="noop">' +
+                '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">' + s[1] + '</svg></a></li>').join("") +
+            '</ul>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</footer>';
+  }
+
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 
   Q.c = { ic, icFill, catIcon, amIcon, appbar, filterRow, card, mapCanvas, mapPane, pins, pinHtml, calendar, calBlock, calHint,
-          filterModal, searchPop, inquiryModal, mobilenav, esc, whenLabel, placeList };
+          filterModal, searchPop, inquiryModal, mobilenav, sitefoot, refinePrompt, esc, whenLabel, placeList,
+          FILTER_MOD };
 })(window.Q = window.Q || {});

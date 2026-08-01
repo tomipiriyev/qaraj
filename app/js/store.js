@@ -10,9 +10,10 @@
     // in the inquiry form (the bar no longer asks for them)
     query: { place: null, q: "", dateISO: null, dateEndISO: null, term: "Месяц" },
     filters: { minM2: 0, priceMax: 30000, amenities: [] },
-    // Гараж and Площадь each have their own filter page under #/filters/
+    // each category has its own filter page under #/filters/
     garage: Q.data.garageDefaults(),
     space: Q.data.spaceDefaults(),
+    sklad: Q.data.skladDefaults(),
     favorites: [],
     inquiries: [],
     selectedId: null,
@@ -28,6 +29,7 @@
     // fill in keys added after a session was stored
     s.garage = Object.assign(Q.data.garageDefaults(), s.garage);
     s.space = Object.assign(Q.data.spaceDefaults(), s.space);
+    s.sklad = Object.assign(Q.data.skladDefaults(), s.sklad);
     if (!s.space.items) s.space.items = {};
     return s;
   }
@@ -65,13 +67,14 @@
   function place() { return state.query.place || Q.data.ANY_PLACE; }
 
   /* filtering — returns listings matching category + place + filters.
-     Гараж and Площадь are filtered and sorted by their own filter pages. */
+     Every category is filtered and sorted by its own filter page. */
   function filtered() {
     const f = state.filters, cat = state.category, p = place();
     const q = (state.query.q || "").trim();
     let list;
     if (cat === "garage") list = Q.data.garageResults(state.garage, p);
     else if (cat === "ploshad") list = Q.data.spaceResults(state.space, p);
+    else if (cat === "sklad") list = Q.data.skladResults(state.sklad, p);
     else list = Q.data.listings.filter(l => {
       if (l.category !== cat) return false;
       if (!Q.data.placeMatches(l, p)) return false;
