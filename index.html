@@ -470,9 +470,11 @@
   .foot-tags { border-top: 1px solid rgba(255,255,255,.1); margin-top: 40px; padding-top: 24px; }
   .foot-tags h5 { color:#fff; font-size: 14px; margin-bottom: 14px; font-family:"Sora"; }
   .foot-tags .tag-links { display:flex; flex-wrap:wrap; gap:8px 10px; }
-  .foot-tags .tag-group { display:flex; gap:14px; align-items:baseline; margin-bottom:14px; }
-  .foot-tags .tag-group:last-child { margin-bottom:0; }
-  .tag-label { font-family:"Sora"; font-size:12px; color:#7e8aa3; flex:0 0 110px; padding-top:6px; }
+  .foot-blog { border-top: 1px solid rgba(255,255,255,.1); margin-top: 40px; padding-top: 26px; }
+  .foot-blog > h5 { color:#fff; font-size: 14px; margin-bottom: 20px; font-family:"Sora"; }
+  .foot-blog-grid { display:grid; grid-template-columns: repeat(4,1fr); gap: 28px 32px; align-items:start; }
+  .foot-blog-grid .foot-col h5 { color:#cbd2e0; font-size: 13px; margin-bottom: 13px; }
+  .foot-blog-grid .foot-col a { font-size: 13.5px; margin-bottom: 9px; }
   .foot-tags a { font-size: 12.5px; color:#94a0b8; background: rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); padding:6px 12px; border-radius:999px; transition:.15s; }
   .foot-tags a:hover { color:#fff; border-color: var(--brand); background: rgba(31,157,85,.16); }
   .foot-bottom { border-top: 1px solid rgba(255,255,255,.1); margin-top: 32px; padding-top: 22px; display:flex; justify-content:space-between; font-size: 13px; color:#7e8aa3; flex-wrap:wrap; gap:10px; }
@@ -511,8 +513,7 @@
     .cat-grid { grid-template-columns: repeat(3,1fr); }
     .ways-grid, .steps { grid-template-columns: 1fr; }
     .foot-grid { grid-template-columns: 1fr 1fr; }
-    .foot-tags .tag-group { flex-direction: column; gap: 8px; }
-    .tag-label { flex: none; padding-top: 0; }
+    .foot-blog-grid { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 560px) {
     .wrap { width: 92%; }
@@ -524,6 +525,7 @@
     .trust { grid-template-columns: repeat(2,1fr); max-width:none; }
     .cat-grid { grid-template-columns: repeat(2,1fr); }
     .foot-grid { grid-template-columns: 1fr; }
+    .foot-blog-grid { grid-template-columns: 1fr; }
     .hero-right { min-height: 420px; padding: 24px 12px; }
     .phone { width: 215px; }
     .phone .screen { height: 450px; border-radius: 30px; }
@@ -1088,12 +1090,52 @@
         <a href="#why">Защита</a>
       </div>
     </div>
-    <div class="foot-tags">
+    <div class="foot-blog">
       <h5>Блог</h5>
-        <div class="tag-group"><span class="tag-label">Склад</span><div class="tag-links"><a href="/blog/kak-vybrat-sklad-v-arendu/">Аренда склада</a><a href="/blog/skolko-stoit-arenda-sklada/">Сколько стоит аренда склада в 2026 году</a><a href="/blog/kriterii-vybora-sklada/">Как выбрать склад для хранения вещей</a><a href="/blog/arenda-nebolshogo-sklada/">Аренда небольшого склада</a><a href="/blog/sklad-dlya-biznesa/">Склад для бизнеса</a><a href="/blog/kratkosrochnaya-arenda-sklada/">Краткосрочная аренда склада</a><a href="/blog/sklad-ryadom-s-domom/">Склад рядом с домом</a><a href="/blog/sklad-dlya-internet-magazina/">Аренда склада для интернет-магазина</a><a href="/blog/tepliy-ili-holodniy-sklad/">Тёплый или холодный склад</a><a href="/blog/sklad-ili-garazh-dlya-hraneniya/">Склад или собственный гараж</a></div></div>
-        <div class="tag-group"><span class="tag-label">Гараж</span><div class="tag-links"><a href="/blog/garazh-ili-parkovochnoe-mesto/">Гараж или парковочное место</a><a href="/blog/krytaya-parkovka-ili-garazh/">Крытая парковка для автомобиля</a><a href="/blog/gde-ostavit-mashinu-na-otpusk/">Где оставить машину на время отпуска</a><a href="/blog/garazh-ryadom-s-domom/">Гараж рядом с домом</a><a href="/blog/sdavat-garazh-i-zarabatyvat/">Свободный гараж</a></div></div>
-        <div class="tag-group"><span class="tag-label">Парковка</span><div class="tag-links"><a href="/blog/parkovka-ryadom-s-domom/">Парковка рядом с домом</a><a href="/blog/arenda-parkovochnogo-mesta-na-mesyats/">Аренда парковочного места на месяц</a><a href="/blog/net-mesta-vo-dvore/">Нет места во дворе</a><a href="/blog/parkovka-u-chastnogo-vladeltsa/">Аренда парковочного места у частного владельца</a><a href="/blog/parkovka-ryadom-s-rabotoy/">Парковка рядом с работой</a></div></div>
-        <div class="tag-group"><span class="tag-label">ПВЗ и маркетплейсы</span><div class="tag-links"><a href="/blog/pomeshchenie-dlya-pvz-wildberries/">Помещение для ПВЗ Wildberries</a><a href="/blog/pomeshchenie-dlya-pvz-ozon/">Помещение для ПВЗ Ozon</a><a href="/blog/gde-otkryt-pvz/">Где открыть ПВЗ</a><a href="/blog/arenda-pomeshcheniya-dlya-pvz/">Аренда помещения для ПВЗ</a><a href="/blog/otkryt-pvz-bez-dorogoy-arendy/">Как открыть пункт выдачи без дорогой аренды</a><a href="/blog/mikrosklad-dlya-marketpleysov/">Микросклад для Wildberries и Ozon</a><a href="/blog/sklad-dlya-prodavtsov-marketpleysov/">Склад для продавцов маркетплейсов</a><a href="/blog/hranenie-tovarov-dlya-marketpleysov/">Хранение товаров для Wildberries и Ozon</a><a href="/blog/gibkaya-arenda-ot-1-m2/">От 1 м² до целого склада</a><a href="/blog/hranenie-dlya-ecommerce/">Хранение для e-commerce</a></div></div>
+      <div class="foot-blog-grid">
+        <div class="foot-col">
+          <h5>Склад</h5>
+          <a href="/blog/kak-vybrat-sklad-v-arendu/">Аренда склада</a>
+          <a href="/blog/skolko-stoit-arenda-sklada/">Сколько стоит аренда склада в 2026 году</a>
+          <a href="/blog/kriterii-vybora-sklada/">Как выбрать склад для хранения вещей</a>
+          <a href="/blog/arenda-nebolshogo-sklada/">Аренда небольшого склада</a>
+          <a href="/blog/sklad-dlya-biznesa/">Склад для бизнеса</a>
+          <a href="/blog/kratkosrochnaya-arenda-sklada/">Краткосрочная аренда склада</a>
+          <a href="/blog/sklad-ryadom-s-domom/">Склад рядом с домом</a>
+          <a href="/blog/sklad-dlya-internet-magazina/">Аренда склада для интернет-магазина</a>
+          <a href="/blog/tepliy-ili-holodniy-sklad/">Тёплый или холодный склад</a>
+          <a href="/blog/sklad-ili-garazh-dlya-hraneniya/">Склад или собственный гараж</a>
+        </div>
+        <div class="foot-col">
+          <h5>Гараж</h5>
+          <a href="/blog/garazh-ili-parkovochnoe-mesto/">Гараж или парковочное место</a>
+          <a href="/blog/krytaya-parkovka-ili-garazh/">Крытая парковка для автомобиля</a>
+          <a href="/blog/gde-ostavit-mashinu-na-otpusk/">Где оставить машину на время отпуска</a>
+          <a href="/blog/garazh-ryadom-s-domom/">Гараж рядом с домом</a>
+          <a href="/blog/sdavat-garazh-i-zarabatyvat/">Свободный гараж</a>
+        </div>
+        <div class="foot-col">
+          <h5>Парковка</h5>
+          <a href="/blog/parkovka-ryadom-s-domom/">Парковка рядом с домом</a>
+          <a href="/blog/arenda-parkovochnogo-mesta-na-mesyats/">Аренда парковочного места на месяц</a>
+          <a href="/blog/net-mesta-vo-dvore/">Нет места во дворе</a>
+          <a href="/blog/parkovka-u-chastnogo-vladeltsa/">Аренда парковочного места у частного владельца</a>
+          <a href="/blog/parkovka-ryadom-s-rabotoy/">Парковка рядом с работой</a>
+        </div>
+        <div class="foot-col">
+          <h5>ПВЗ и маркетплейсы</h5>
+          <a href="/blog/pomeshchenie-dlya-pvz-wildberries/">Помещение для ПВЗ Wildberries</a>
+          <a href="/blog/pomeshchenie-dlya-pvz-ozon/">Помещение для ПВЗ Ozon</a>
+          <a href="/blog/gde-otkryt-pvz/">Где открыть ПВЗ</a>
+          <a href="/blog/arenda-pomeshcheniya-dlya-pvz/">Аренда помещения для ПВЗ</a>
+          <a href="/blog/otkryt-pvz-bez-dorogoy-arendy/">Как открыть пункт выдачи без дорогой аренды</a>
+          <a href="/blog/mikrosklad-dlya-marketpleysov/">Микросклад для Wildberries и Ozon</a>
+          <a href="/blog/sklad-dlya-prodavtsov-marketpleysov/">Склад для продавцов маркетплейсов</a>
+          <a href="/blog/hranenie-tovarov-dlya-marketpleysov/">Хранение товаров для Wildberries и Ozon</a>
+          <a href="/blog/gibkaya-arenda-ot-1-m2/">От 1 м² до целого склада</a>
+          <a href="/blog/hranenie-dlya-ecommerce/">Хранение для e-commerce</a>
+        </div>
+      </div>
     </div>
     <div class="foot-tags">
       <h5>Смотрите также</h5>

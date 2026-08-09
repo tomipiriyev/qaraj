@@ -45,17 +45,17 @@ HEADER = f'''<header>
 </header>'''
 
 
-def blog_tag_groups():
-    """Ссылки на все статьи блога, сгруппированные по кластерам — для футера."""
+def blog_columns():
+    """Все статьи блога колонками по кластерам — для футера."""
     out = []
     for key, label in CLUSTERS.items():
         posts = [p for p in POSTS if p["cluster"] == key]
         if not posts:
             continue
-        links = "".join(
-            f'<a href="/blog/{p["slug"]}/">{p["title"]}</a>' for p in posts)
-        out.append(f'        <div class="tag-group"><span class="tag-label">{label}</span>'
-                   f'<div class="tag-links">{links}</div></div>')
+        links = "\n".join(
+            f'          <a href="/blog/{p["slug"]}/">{p["title"]}</a>' for p in posts)
+        out.append(f'        <div class="foot-col">\n'
+                   f'          <h5>{label}</h5>\n{links}\n        </div>')
     return "\n".join(out)
 
 
@@ -93,9 +93,11 @@ FOOTER = f'''<footer>
         <a href="/#faq">Вопросы и ответы</a>
       </div>
     </div>
-    <div class="foot-tags">
+    <div class="foot-blog">
       <h5>Блог</h5>
-{blog_tag_groups()}
+      <div class="foot-blog-grid">
+{blog_columns()}
+      </div>
     </div>
     <div class="foot-tags">
       <h5>Смотрите также</h5>
