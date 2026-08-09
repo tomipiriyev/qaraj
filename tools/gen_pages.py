@@ -1,111 +1,23 @@
 # -*- coding: utf-8 -*-
-"""Генерирует статические страницы Qaraj. Вывод — самодостаточные .html файлы."""
-import os, json, html
+"""Генерирует шесть SEO-лендингов Qaraj в корне сайта.
 
-# Корень репозитория = каталог на уровень выше tools/. Запуск: python3 tools/gen_pages.py
+Запуск из корня репозитория:  python3 tools/gen_pages.py
+Шапка, футер и JSON-LD-хелперы — общие с блогом, лежат в tools/chrome.py.
+Блог генерируется отдельно: python3 tools/gen_blog.py
+"""
+import os, sys, json, html
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from chrome import (SITE, HEADER, FOOTER, AMENITIES, LOGO_SVG,
+                    faq_jsonld, crumbs_jsonld, faq_html)
+
+# Корень репозитория = каталог на уровень выше tools/.
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SITE = "https://qaraj.ru"
-
-LOGO_SVG = ('<svg viewBox="0 0 24 24" fill="none">'
-  '<path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>'
-  '<path d="M3 7l9 5 9-5M12 12v10" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>')
-
-# ---------------------------------------------------------------- shared chrome
-HEADER = f'''<header>
-  <div class="wrap nav">
-    <a href="/" class="brand"><span class="logo-mark">{LOGO_SVG}</span><span>Qar<b>aj</b></span></a>
-    <nav class="nav-links">
-      <a href="/arenda-garazha-moskva/">Гаражи</a>
-      <a href="/arenda-kladovki-moskva/">Кладовки</a>
-      <a href="/hranenie-veshchey-moskva/">Хранение вещей</a>
-      <a href="/sdat-garazh-v-arendu/">Сдать место</a>
-    </nav>
-    <a class="nav-cta" href="/#waitlist">Оставить заявку</a>
-  </div>
-</header>'''
-
-FOOTER = f'''<footer>
-  <div class="wrap">
-    <div class="foot-grid">
-      <div>
-        <div class="brand"><span class="logo-mark">{LOGO_SVG}</span><span>Qar<b>aj</b></span></div>
-        <p class="foot-about">Маркетплейс свободного места для хранения. Аренда гаражей, кладовок, комнат и углов на складах — по м², по типу вещей или целиком.</p>
-        <div class="socials">
-          <a href="#" aria-label="Telegram"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 18.9 19c-.2 1-.8 1.2-1.7.8l-4.6-3.4-2.2 2.1c-.3.3-.5.5-1 .5l.3-4.7 8.5-7.7c.4-.3-.1-.5-.6-.2L7.2 13 2.7 11.6c-1-.3-1-1 .2-1.5l17.7-6.8c.8-.3 1.5.2 1.3 1Z"/></svg></a>
-          <a href="#" aria-label="VK"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.8 17c-5 0-8.2-3.5-8.3-9.3h2.6c.1 4.3 2.1 6.1 3.6 6.5V7.7h2.5v3.8c1.4-.2 2.9-1.9 3.4-3.8h2.4c-.4 2.3-1.9 4-3 4.7 1.1.6 2.8 2.1 3.5 4.6h-2.7c-.5-1.7-1.8-3-3.6-3.2V17h-.4Z"/></svg></a>
-          <a href="#" aria-label="Instagram"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/></svg></a>
-        </div>
-      </div>
-      <div class="foot-col">
-        <h5>Арендаторам</h5>
-        <a href="/arenda-garazha-moskva/">Аренда гаража в Москве</a>
-        <a href="/arenda-kladovki-moskva/">Аренда кладовки в Москве</a>
-        <a href="/hranenie-veshchey-moskva/">Хранение вещей в Москве</a>
-        <a href="/skolko-stoit-arenda-garazha/">Сколько стоит аренда гаража</a>
-      </div>
-      <div class="foot-col">
-        <h5>Хозяевам</h5>
-        <a href="/sdat-garazh-v-arendu/">Сдать гараж в аренду</a>
-        <a href="/skolko-stoit-arenda-garazha/">Сколько можно заработать</a>
-        <a href="/dogovor-arendy-garazha/">Договор аренды гаража</a>
-        <a href="/#owners">Калькулятор размера</a>
-      </div>
-      <div class="foot-col">
-        <h5>Компания</h5>
-        <a href="/">О Qaraj</a>
-        <a href="/#how">Как это работает</a>
-        <a href="/#faq">Вопросы и ответы</a>
-      </div>
-    </div>
-    <div class="foot-tags">
-      <h5>Смотрите также</h5>
-      <div class="tag-links">
-        <a href="/arenda-garazha-moskva/">Аренда гаража в Москве</a>
-        <a href="/arenda-kladovki-moskva/">Аренда кладовки в Москве</a>
-        <a href="/hranenie-veshchey-moskva/">Хранение вещей в Москве</a>
-        <a href="/sdat-garazh-v-arendu/">Сдать гараж в аренду</a>
-        <a href="/dogovor-arendy-garazha/">Договор аренды гаража — образец</a>
-        <a href="/skolko-stoit-arenda-garazha/">Сколько стоит аренда гаража</a>
-      </div>
-    </div>
-    <div class="foot-bottom">
-      <span>© 2026 Qaraj. Все права защищены.</span>
-      <span>Конфиденциальность · Условия · Cookies</span>
-    </div>
-  </div>
-</footer>'''
-
-
-def faq_jsonld(items):
-    return json.dumps({
-        "@context": "https://schema.org", "@type": "FAQPage",
-        "mainEntity": [{"@type": "Question", "name": q,
-                        "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in items]
-    }, ensure_ascii=False, indent=2)
-
-
-def crumbs_jsonld(slug, name):
-    return json.dumps({
-        "@context": "https://schema.org", "@type": "BreadcrumbList",
-        "itemListElement": [
-            {"@type": "ListItem", "position": 1, "name": "Главная", "item": f"{SITE}/"},
-            {"@type": "ListItem", "position": 2, "name": name, "item": f"{SITE}/{slug}/"},
-        ]
-    }, ensure_ascii=False, indent=2)
-
-
-def faq_html(items):
-    rows = []
-    for q, a in items:
-        rows.append(f'      <details>\n'
-                    f'        <summary>{q}<span class="plus">+</span></summary>\n'
-                    f'        <div class="ans">{a}</div>\n'
-                    f'      </details>')
-    return "\n".join(rows)
 
 
 def build(slug, title, desc, crumb, h1, lede, body, faq, extra_ld=None, extra_js=""):
-    lds = [crumbs_jsonld(slug, crumb), faq_jsonld(faq)]
+    lds = [crumbs_jsonld((crumb, f"{SITE}/{slug}/")), faq_jsonld(faq)]
     if extra_ld:
         lds.append(extra_ld)
     ld_blocks = "\n".join(
@@ -187,9 +99,6 @@ def build(slug, title, desc, crumb, h1, lede, body, faq, extra_ld=None, extra_js
         f.write(page)
     print(f"  wrote /{slug}/index.html  ({len(page):,} bytes)")
 
-
-AMENITIES = ('<div class="amenities"><span>Климат-контроль</span><span>Видеонаблюдение</span>'
-             '<span>Доступ 24/7</span><span>Датчик дыма</span><span>Электричество</span></div>')
 
 PAGES = []
 
