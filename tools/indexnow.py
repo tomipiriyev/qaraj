@@ -20,6 +20,7 @@ import glob
 import json
 import os
 import re
+import ssl
 import sys
 import urllib.request
 import urllib.error
@@ -47,6 +48,25 @@ def sitemap_urls():
         return re.findall(r"<loc>(.*?)</loc>", f.read())
 
 
+def ssl_context():
+    """Питон с python.org на macOS часто ставится без корневых сертификатов.
+    В этом случае берём набор из certifi. Проверку сертификата не отключаем."""
+    ctx = ssl.create_default_context()
+    try:
+        ctx.load_verify_locations(cafile=None)
+        if ctx.cert_store_stats()["x509_ca"]:
+            return ctx
+    except Exception:
+        pass
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        raise SystemExit(
+            "нет корневых сертификатов: запустите «Install Certificates.command» "
+            "из /Applications/Python 3.x/ либо установите certifi")
+
+
 def submit(key, urls):
     payload = json.dumps({
         "host": HOST,
@@ -59,7 +79,7 @@ def submit(key, urls):
         ENDPOINT, data=payload,
         headers={"Content-Type": "application/json; charset=utf-8"})
     try:
-        with urllib.request.urlopen(req, timeout=30) as r:
+        with urllib.request.urlopen(req, timeout=30, context=ssl_context()) as r:
             return r.status, r.read().decode("utf-8", "replace")[:400]
     except urllib.error.HTTPError as e:
         return e.code, e.read().decode("utf-8", "replace")[:400]
