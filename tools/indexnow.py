@@ -11,6 +11,7 @@ https://qaraj.ru/<ключ>.txt — иначе поисковик отклони
 Запуск из корня репозитория:
     python3 tools/indexnow.py            # все URL из sitemap.xml
     python3 tools/indexnow.py --dry-run  # показать, что будет отправлено
+    python3 tools/indexnow.py --yandex   # плюс напрямую в точку Яндекса
     python3 tools/indexnow.py https://qaraj.ru/sklad-dlya-biznesa/  ...  # только эти URL
 
 Отправлять имеет смысл после публикации новых или изменённых страниц.
@@ -22,8 +23,10 @@ import os
 import re
 import ssl
 import sys
-import urllib.request
+import time
 import urllib.error
+import urllib.parse
+import urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOST = "qaraj.ru"
@@ -85,9 +88,35 @@ def submit(key, urls):
         return e.code, e.read().decode("utf-8", "replace")[:400]
 
 
+def submit_yandex(key, urls):
+    """Дополнительно — напрямую в точку Яндекса.
+
+    Общая api.indexnow.org раздаёт заявку всем участникам, включая Яндекс,
+    так что это подстраховка, а не обязательный шаг. Важная деталь: POST с
+    JSON на yandex.com/indexnow отдаёт 403, а GET-форма с параметрами в
+    строке запроса принимается — поэтому здесь по одному URL за запрос.
+    """
+    ok = failed = 0
+    for u in urls:
+        q = urllib.parse.urlencode({"url": u, "key": key})
+        try:
+            with urllib.request.urlopen("https://yandex.com/indexnow?" + q,
+                                        timeout=20, context=ssl_context()) as r:
+                ok += r.status in (200, 202)
+        except urllib.error.HTTPError as e:
+            if e.code in (200, 202):
+                ok += 1
+            else:
+                failed += 1
+                print(f"  {e.code}  {u}")
+        time.sleep(0.4)
+    return ok, failed
+
+
 if __name__ == "__main__":
-    args = [a for a in sys.argv[1:] if a != "--dry-run"]
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
     dry = "--dry-run" in sys.argv
+    also_yandex = "--yandex" in sys.argv
 
     key = find_key()
     urls = args or sitemap_urls()
@@ -110,3 +139,8 @@ if __name__ == "__main__":
         print(body)
     # 200 — принято, 202 — принято, ключ проверяется асинхронно
     print("OK — заявка принята" if status in (200, 202) else "заявка НЕ принята")
+
+    if also_yandex:
+        print("\nдополнительно напрямую в Яндекс:")
+        ok, failed = submit_yandex(key, urls)
+        print(f"  принято: {ok} | отклонено: {failed}")
