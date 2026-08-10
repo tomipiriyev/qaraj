@@ -11,7 +11,7 @@ https://qaraj.ru/<ключ>.txt — иначе поисковик отклони
 Запуск из корня репозитория:
     python3 tools/indexnow.py            # все URL из sitemap.xml
     python3 tools/indexnow.py --dry-run  # показать, что будет отправлено
-    python3 tools/indexnow.py https://qaraj.ru/blog/  ...   # только эти URL
+    python3 tools/indexnow.py https://qaraj.ru/sklad-dlya-biznesa/  ...  # только эти URL
 
 Отправлять имеет смысл после публикации новых или изменённых страниц.
 Заваливать сервис повторными заявками по неизменившимся URL не нужно.

@@ -38,7 +38,6 @@ HEADER = f'''<header>
       <a href="/arenda-kladovki-moskva/">Кладовки</a>
       <a href="/hranenie-veshchey-moskva/">Хранение вещей</a>
       <a href="/sdat-garazh-v-arendu/">Сдать место</a>
-      <a href="/blog/">Блог</a>
     </nav>
     <a class="nav-cta" href="/#waitlist">Оставить заявку</a>
   </div>
@@ -53,7 +52,7 @@ def blog_columns():
         if not posts:
             continue
         links = "\n".join(
-            f'          <a href="/blog/{p["slug"]}/">{p["title"]}</a>' for p in posts)
+            f'          <a href="/{p["slug"]}/">{p["title"]}</a>' for p in posts)
         out.append(f'        <div class="foot-col">\n'
                    f'          <h5>{label}</h5>\n{links}\n        </div>')
     return "\n".join(out)
@@ -92,8 +91,7 @@ FOOTER = f'''<footer>
       <div class="foot-col">
         <h5>Qaraj</h5>
         <a href="/">О сервисе</a>
-        <a href="/blog/">Блог</a>
-        <a href="/#how">Как это работает</a>
+          <a href="/#how">Как это работает</a>
         <a href="/#faq">Вопросы и ответы</a>
         <a href="/#waitlist">Оставить заявку</a>
       </div>

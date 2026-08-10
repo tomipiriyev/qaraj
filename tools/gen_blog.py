@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Генерирует блог Qaraj: /blog/ и /blog/<slug>/ для каждой статьи.
+"""Генерирует статьи Qaraj — по одной самостоятельной странице на статью.
+
+Каждая статья лежит в корне сайта: /<slug>/index.html, рядом с шестью
+SEO-лендингами. Общей страницы-индекса («блога») нет: статьи связаны между
+собой блоком «Читайте также» и ссылками в футере.
 
 Запуск из корня репозитория:  python3 tools/gen_blog.py
 Контент лежит в tools/blog_posts.py, шапка и футер — в tools/chrome.py.
@@ -14,7 +18,6 @@ from chrome import (SITE, HEADER, FOOTER, AMENITIES, FAVICON, FONTS,
                     faq_jsonld, crumbs_jsonld, faq_html)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BLOG_DIR = os.path.join(ROOT, "blog")
 PUBLISHED = "2026-08-09"      # дата публикации в JSON-LD, править при переработке
 
 
@@ -66,9 +69,9 @@ def render_sections(sections):
     return "\n\n".join(parts)
 
 
-def posting_jsonld(post, url):
+def article_jsonld(post, url):
     return json.dumps({
-        "@context": "https://schema.org", "@type": "BlogPosting",
+        "@context": "https://schema.org", "@type": "Article",
         "headline": f'{post["title"]}: {post["subtitle"]}',
         "description": post["desc"],
         "url": url, "mainEntityOfPage": {"@type": "WebPage", "@id": url},
@@ -83,29 +86,40 @@ def posting_jsonld(post, url):
     }, ensure_ascii=False, indent=2)
 
 
-def shell(title, desc, url, ld_blocks, crumbs, hero, main, og_type="article"):
-    return f'''<!DOCTYPE html>
+def build_post(post):
+    slug, url = post["slug"], f'{SITE}/{post["slug"]}/'
+    title = f'{post["title"]}: {post["subtitle"]} | Qaraj'
+
+    ld_blocks = "\n".join(f'<script type="application/ld+json">\n{b}\n</script>' for b in [
+        crumbs_jsonld((post["title"], url)),
+        faq_jsonld(post["faq"]),
+        article_jsonld(post, url),
+    ])
+
+    related = "".join(f'<a href="{href}">{label}</a>' for href, label in post["related"])
+
+    page = f'''<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>{title}</title>
-<meta name="description" content="{desc}" />
+<meta name="description" content="{post["desc"]}" />
 <meta name="robots" content="index, follow, max-image-preview:large" />
 <meta name="theme-color" content="#1f9d55" />
 <link rel="canonical" href="{url}" />
 <link rel="icon" href="{FAVICON}" />
 
-<meta property="og:type" content="{og_type}" />
+<meta property="og:type" content="article" />
 <meta property="og:site_name" content="Qaraj" />
 <meta property="og:title" content="{title}" />
-<meta property="og:description" content="{desc}" />
+<meta property="og:description" content="{post["desc"]}" />
 <meta property="og:url" content="{url}" />
 <meta property="og:image" content="{SITE}/images/photo_2026-06-23%2022.11.58.jpeg" />
 <meta property="og:locale" content="ru_RU" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="{title}" />
-<meta name="twitter:description" content="{desc}" />
+<meta name="twitter:description" content="{post["desc"]}" />
 
 {FONTS}
 <link rel="stylesheet" href="/styles/page.css" />
@@ -116,35 +130,10 @@ def shell(title, desc, url, ld_blocks, crumbs, hero, main, og_type="article"):
 {HEADER}
 
 <div class="wrap">
-  <nav class="crumbs">{crumbs}</nav>
+  <nav class="crumbs"><a href="/">Главная</a> · <span>{post["title"]}</span></nav>
 </div>
 
-{hero}
-
-<main class="wrap">
-{main}
-</main>
-
-{FOOTER}
-</body>
-</html>
-'''
-
-
-# ------------------------------------------------------------------- статья
-def build_post(post):
-    slug, url = post["slug"], f'{SITE}/blog/{post["slug"]}/'
-    title = f'{post["title"]}: {post["subtitle"]} | Qaraj'
-
-    lds = "\n".join(f'<script type="application/ld+json">\n{b}\n</script>' for b in [
-        crumbs_jsonld(("Блог", f"{SITE}/blog/"), (post["title"], url)),
-        faq_jsonld(post["faq"]),
-        posting_jsonld(post, url),
-    ])
-
-    crumbs = f'<a href="/">Главная</a> · <a href="/blog/">Блог</a> · <span>{post["title"]}</span>'
-
-    hero = f'''<div class="page-hero">
+<div class="page-hero">
   <div class="wrap">
     <p class="post-kicker">{CLUSTERS[post["cluster"]]}</p>
     <h1>{post["title"]}: {post["subtitle"]}</h1>
@@ -152,10 +141,10 @@ def build_post(post):
     <a class="hero-cta" href="/#waitlist">Оставить заявку</a>
     <p class="hero-note">Qaraj в раннем доступе — оставьте почту, и мы напишем, когда в вашем районе появятся места.</p>
   </div>
-</div>'''
+</div>
 
-    related = "".join(f'<a href="{href}">{label}</a>' for href, label in post["related"])
-    main = f'''{render_sections(post["sections"])}
+<main class="wrap">
+{render_sections(post["sections"])}
 
   <section>
     <h2>Частые вопросы</h2>
@@ -175,71 +164,16 @@ def build_post(post):
       <p>Qaraj собирает свободные гаражи, кладовки и складские метры у частных хозяев. Оставьте заявку — подберём вариант в вашем районе.</p>
       <a href="/#waitlist">Оставить заявку</a>
     </div>
-  </section>'''
+  </section>
+</main>
 
-    page = shell(title, post["desc"], url, lds, crumbs, hero, main)
-    d = os.path.join(BLOG_DIR, slug)
+{FOOTER}
+</body>
+</html>
+'''
+    d = os.path.join(ROOT, slug)
     os.makedirs(d, exist_ok=True)
     with open(os.path.join(d, "index.html"), "w", encoding="utf-8") as f:
-        f.write(page)
-    return len(page)
-
-
-# --------------------------------------------------------------- индекс блога
-def build_index():
-    url = f"{SITE}/blog/"
-    title = "Блог Qaraj — аренда склада, гаража и места для хранения"
-    desc = ("Блог Qaraj: как выбрать склад или гараж в аренду, сколько стоит хранение вещей, "
-            "как не переплачивать за лишние метры и что проверить перед подписанием договора.")
-
-    item_list = json.dumps({
-        "@context": "https://schema.org", "@type": "Blog",
-        "name": "Блог Qaraj", "url": url, "inLanguage": "ru-RU",
-        "publisher": {"@type": "Organization", "name": "Qaraj", "url": f"{SITE}/"},
-        "blogPost": [{"@type": "BlogPosting",
-                      "headline": f'{p["title"]}: {p["subtitle"]}',
-                      "url": f'{SITE}/blog/{p["slug"]}/',
-                      "datePublished": PUBLISHED} for p in POSTS],
-    }, ensure_ascii=False, indent=2)
-
-    lds = "\n".join(f'<script type="application/ld+json">\n{b}\n</script>' for b in [
-        crumbs_jsonld(("Блог", url)), item_list])
-
-    hero = f'''<div class="page-hero">
-  <div class="wrap">
-    <h1>Блог Qaraj</h1>
-    <p class="lede">Как выбрать место для хранения, сколько это стоит и на что смотреть перед тем, как платить. {len(POSTS)} материалов о складах, гаражах и аренде свободного пространства.</p>
-    <a class="hero-cta" href="/#waitlist">Оставить заявку</a>
-  </div>
-</div>'''
-
-    blocks = []
-    for key, label in CLUSTERS.items():
-        posts = [p for p in POSTS if p["cluster"] == key]
-        if not posts:
-            continue
-        cards = "\n".join(
-            f'      <a class="post-card" href="/blog/{p["slug"]}/">\n'
-            f'        <h3>{p["title"]}</h3>\n'
-            f'        <p>{p["subtitle"]}</p>\n'
-            f'      </a>' for p in posts)
-        blocks.append(f'  <section>\n    <h2>{label}</h2>\n'
-                      f'    <div class="cards post-grid">\n{cards}\n    </div>\n  </section>')
-
-    main = "\n\n".join(blocks) + '''
-
-  <section>
-    <div class="cta-band">
-      <h2>Нужно место для хранения?</h2>
-      <p>Qaraj собирает свободные гаражи, кладовки и складские метры у частных хозяев. Оставьте заявку — подберём вариант в вашем районе.</p>
-      <a href="/#waitlist">Оставить заявку</a>
-    </div>
-  </section>'''
-
-    crumbs = '<a href="/">Главная</a> · <span>Блог</span>'
-    page = shell(title, desc, url, lds, crumbs, hero, main, og_type="website")
-    os.makedirs(BLOG_DIR, exist_ok=True)
-    with open(os.path.join(BLOG_DIR, "index.html"), "w", encoding="utf-8") as f:
         f.write(page)
     return len(page)
 
@@ -257,18 +191,11 @@ def write_sitemap():
         return 0
 
     entries = [f"""  <url>
-    <loc>{SITE}/blog/</loc>
-    <lastmod>{PUBLISHED}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>"""]
-    for p in POSTS:
-        entries.append(f"""  <url>
-    <loc>{SITE}/blog/{p["slug"]}/</loc>
+    <loc>{SITE}/{p["slug"]}/</loc>
     <lastmod>{PUBLISHED}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
-  </url>""")
+  </url>""" for p in POSTS]
 
     head = xml[:xml.index(start) + len(start)]
     tail = xml[xml.index(end):]
@@ -278,13 +205,12 @@ def write_sitemap():
 
 
 if __name__ == "__main__":
-    print("Генерация блога:")
-    total = build_index()
-    print(f"  wrote /blog/index.html  ({total:,} bytes)")
+    print("Генерация статей:")
+    total = 0
     for post in POSTS:
         size = build_post(post)
         total += size
-        print(f'  wrote /blog/{post["slug"]}/index.html  ({size:,} bytes)')
+        print(f'  wrote /{post["slug"]}/index.html  ({size:,} bytes)')
     n = write_sitemap()
-    print(f"  обновлён sitemap.xml ({n} URL блога)")
-    print(f"\nГотово: {len(POSTS)} статей + индекс, {total:,} bytes.")
+    print(f"  обновлён sitemap.xml ({n} URL статей)")
+    print(f"\nГотово: {len(POSTS)} статей, {total:,} bytes.")
